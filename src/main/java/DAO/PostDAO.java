@@ -2,8 +2,6 @@ package DAO;
 
 import Entities.PostEntity;
 import Mappers.PostMapper;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;

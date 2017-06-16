@@ -32,51 +32,98 @@ create table users
 )
 ;
 
-CREATE TABLE forum (
-  id INTEGER PRIMARY KEY DEFAULT NEXTVAL('forum_id_seq'),
-  title TEXT NOT NULL,
-  "user" TEXT NOT NULL,
-  slug TEXT,
-  posts INTEGER,
-  threads INTEGER
-);
+create index index_user__email
+  on users (lower(email::text))
+;
 
-CREATE TABLE post (
-  id INTEGER PRIMARY KEY DEFAULT NEXTVAL('post_id_seq'),
-  parent INTEGER DEFAULT 0,
-  author VARCHAR(255),
-  message TEXT,
-  isedited BOOLEAN,
-  forum VARCHAR(255),
-  created TIMESTAMP WITH TIME ZONE DEFAULT now(),
-  thread INTEGER,
-  path VARCHAR(255)
-);
+create index index_user__nickname
+  on users (lower(nickname::text))
+;
 
-CREATE TABLE thread (
-  id INTEGER PRIMARY KEY DEFAULT NEXTVAL('thread_id_seq'),
-  title TEXT NOT NULL,
-  forum TEXT NOT NULL,
-  message TEXT,
-  votes INTEGER,
-  slug TEXT,
-  created TIMESTAMP WITH TIME ZONE,
-  author TEXT
-);
+create table forum
+(
+  id serial not null
+    constraint forum_pkey
+    primary key,
+  title text not null,
+  "user" text not null,
+  slug text,
+  posts integer default 0 not null,
+  threads integer default 0 not null
+)
+;
 
-CREATE TABLE vote (
-  thread_id INTEGER,
-  nickname VARCHAR(255),
-  voice INTEGER,
+create index index_forum__slug
+  on forum (slug)
+;
+
+create table post
+(
+  id serial not null
+    constraint post_pkey
+    primary key,
+  parent integer default 0,
+  author varchar(255),
+  message text,
+  isedited boolean,
+  forum varchar(255),
+  created timestamp with time zone default now(),
+  thread integer,
+  path varchar(255)
+)
+;
+
+create index index_post__parent_thread
+  on post (parent, thread)
+;
+
+create index index_post__thread
+  on post (thread)
+;
+
+create table thread
+(
+  id serial not null
+    constraint thread_pkey
+    primary key,
+  title text not null,
+  forum text not null,
+  message text,
+  votes integer,
+  slug text,
+  created timestamp with time zone,
+  author text
+)
+;
+
+create index index_thread__slug
+  on thread (lower(slug))
+;
+
+create table vote
+(
+  thread_id integer,
+  nickname varchar(255),
+  voice integer,
   id serial not null
     constraint vote_pkey
     primary key
-);
+)
+;
 
-CREATE TABLE link_user_forum (
-  id SERIAL PRIMARY KEY ,
-  userid INTEGER,
-  forum_slug CITEXT COLLATE "ucs_basic",
-  UNIQUE (userid, forum_slug)
-);
+create index index_vote__id_nickname
+  on vote (id, lower(nickname::text))
+;
+
+create table link_user_forum
+(
+  id serial not null
+    constraint link_user_forum_pkey
+    primary key,
+  userid integer,
+  forum_slug citext,
+  constraint link_user_forum_userid_forum_slug_key
+  unique (userid, forum_slug)
+)
+;
 
