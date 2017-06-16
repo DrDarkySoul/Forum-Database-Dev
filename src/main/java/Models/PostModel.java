@@ -1,6 +1,7 @@
 package Models;
 
 import DAO.ForumDAO;
+import DAO.UserDAO;
 import Entities.ForumEntity;
 import Entities.PostEntity;
 import Entities.ThreadEntity;
@@ -17,7 +18,6 @@ public class PostModel {
     
     private JdbcTemplate jdbcTemplate;
 
-    @Autowired
     public PostModel(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -57,7 +57,7 @@ public class PostModel {
                     break;
                 }
                 case "user": {
-                    final UserEntity userEntity = new UserModel(jdbcTemplate).getUserFromNickname(postEntity.getAuthor());
+                    final UserEntity userEntity = new UserDAO(jdbcTemplate).getUserFromNickname(postEntity.getAuthor());
                     if (userEntity != null) result.put("author", userEntity.getJSON());
                     break;
                 }

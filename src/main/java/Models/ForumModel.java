@@ -64,18 +64,14 @@ public class ForumModel {
         return new ResponseEntity<>(threadEntity.getJSONString(), HttpStatus.CREATED);
     }
 
-    private String queryGetThreadBuilder(Integer limit, String since, Boolean desc)
-    {
+    private String queryGetThreadBuilder(Integer limit, String since, Boolean desc) {
         final StringBuilder query = new StringBuilder("SELECT * FROM thread WHERE LOWER(forum) = LOWER(?)");
         if (since != null)
             if (desc) query.append(" AND created <=?::timestamptz ");
             else query.append(" AND created >=?::timestamptz ");
-
         query.append(" ORDER BY created ");
         if (desc) query.append(" DESC ");
-
-        if (limit != null)
-            query.append(" LIMIT ?");
+        if (limit != null) query.append(" LIMIT ?");
         return query.toString();
     }
 
@@ -83,14 +79,13 @@ public class ForumModel {
         // Forum check
         final ForumEntity forum = forumDAO.getForumFromSlug(forumSlug);
         if(forum == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
-
         String query = this.queryGetThreadBuilder(limit, since, desc);
         if (since != null) since = DataBaseHelper.dataFixReplaceSpace(since);
         String result = threadDAO.getThreadList(forumSlug, limit, since, query);
-
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    // TODO: Add new table, fix slow query
     public ResponseEntity<String> getForumUsers(String forumSlug, Integer limit, String since, Boolean desc) {
         // Forum check
         final ForumEntity forum = forumDAO.getForumFromSlug(forumSlug);

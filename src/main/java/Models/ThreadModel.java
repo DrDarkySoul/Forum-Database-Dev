@@ -1,5 +1,6 @@
 package Models;
 
+import DAO.UserDAO;
 import Entities.PostEntity;
 import Entities.ThreadEntity;
 import Entities.UserEntity;
@@ -55,7 +56,7 @@ public class ThreadModel {
                     return new ResponseEntity<>("", HttpStatus.CONFLICT);
                 }
             // User check
-            final UserEntity userEntity = new UserModel(jdbcTemplate).getUserFromNickname(post.getAuthor());
+            final UserEntity userEntity = new UserDAO(jdbcTemplate).getUserFromNickname(post.getAuthor());
             if(userEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
             post.setForum(threadEntity.getForum());
             post.setThread(threadEntity.getId());
@@ -100,7 +101,7 @@ public class ThreadModel {
 
     @Transactional
     public ResponseEntity<String> vote(VoteEntity voteEntity, String slug_or_id) {
-        if(new UserModel(jdbcTemplate).getUserFromNickname(voteEntity.getNickname()) == null)
+        if(new UserDAO(jdbcTemplate).getUserFromNickname(voteEntity.getNickname()) == null)
             return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
         final ThreadEntity threadEntity = this.getThreadEntity(slug_or_id);
         if(threadEntity == null)

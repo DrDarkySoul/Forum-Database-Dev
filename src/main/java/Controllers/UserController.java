@@ -27,13 +27,13 @@ public class UserController {
     @RequestMapping(path = "/{nickname}/profile",
             method = RequestMethod.GET)
     public ResponseEntity<String> getUser(@PathVariable(name = "nickname") String nickname) {
-        return (userService.get(nickname));
+        return (userService.getUserProfile(nickname));
     }
 
     @RequestMapping(path = "/{nickname}/profile",
             method = RequestMethod.POST)
     public ResponseEntity<String> updateUser(@RequestBody UserEntity body,
                                              @PathVariable(name = "nickname") String nickname) {
-        return (userService.update(body, nickname));
+        return (userService.updateProfile(body, nickname));
     }
 }
