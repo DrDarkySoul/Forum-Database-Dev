@@ -122,6 +122,7 @@ public class ThreadModel {
             return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
         }
     }
+    
 
     public ResponseEntity<String> getThreadPosts(String slug_or_id, Integer limit,
                                                  String sort, Boolean desc, Integer marker) {
