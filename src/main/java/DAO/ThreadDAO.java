@@ -78,6 +78,4 @@ public class ThreadDAO {
             result.put(threadEntity.getJSON());});
         return result.toString();
     }
-
-
 }

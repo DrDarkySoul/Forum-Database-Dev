@@ -4,6 +4,8 @@ import Entities.PostEntity;
 import Mappers.PostMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.List;
+
 /**
  * Created by Rishat_Valitov on 16.06.17.
  */
@@ -47,5 +49,10 @@ public class PostDAO {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public void butchInsertPost(List<Object[]> list) {
+        jdbcTemplate.batchUpdate("INSERT INTO post (parent,author,message,isEdited,forum,thread,path,created) " +
+                "VALUES (?,?,?,?,?,?,?,?::timestamptz)", list);
     }
 }

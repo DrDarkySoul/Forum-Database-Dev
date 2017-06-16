@@ -1,9 +1,6 @@
 package Models;
 
-import DAO.PostDAO;
-import DAO.ThreadDAO;
-import DAO.UserDAO;
-import DAO.VoteDAO;
+import DAO.*;
 import Entities.PostEntity;
 import Entities.ThreadEntity;
 import Entities.UserEntity;
@@ -26,12 +23,14 @@ public class ThreadModel {
     private final UserDAO userDAO;
     private final PostDAO postDAO;
     private final VoteDAO voteDAO;
+    private final ForumDAO forumDAO;
 
     public ThreadModel(JdbcTemplate jdbcTemplate) {
         this.threadDAO = new ThreadDAO(jdbcTemplate);
         this.userDAO = new UserDAO(jdbcTemplate);
         this.postDAO = new PostDAO(jdbcTemplate);
         this.voteDAO = new VoteDAO(jdbcTemplate);
+        this.forumDAO = new ForumDAO(jdbcTemplate);
     }
 
     @Transactional(isolation = Isolation.REPEATABLE_READ)
@@ -96,10 +95,8 @@ public class ThreadModel {
             post.setId(id);
             result.put(post.getJSON());
         }
-        jdbcTemplate.batchUpdate("INSERT INTO post (parent,author,message,isEdited,forum,thread,path,created) " +
-                "VALUES (?,?,?,?,?,?,?,?::timestamptz)", postsList);
-        jdbcTemplate.update("UPDATE forum SET posts = posts + " + postEntityArrayList.size() +
-                        " WHERE LOWER(slug) = LOWER(?)", threadEntity.getForum());
+        postDAO.butchInsertPost(postsList);
+        forumDAO.updatePostCount(threadEntity.getForum(), postEntityArrayList.size());
         return new ResponseEntity<>(result.toString(), HttpStatus.CREATED);
     }
 

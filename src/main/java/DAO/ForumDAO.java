@@ -30,4 +30,9 @@ public class ForumDAO {
                     forumEntity.getPosts(), forumEntity.getThreads());
         } catch (Exception ignored) {}
     }
+
+    public void updatePostCount(String forumSlug, Integer size) {
+        jdbcTemplate.update("UPDATE forum SET posts = posts + " + size +
+                " WHERE LOWER(slug) = LOWER(?)", forumSlug);
+    }
 }
