@@ -107,8 +107,6 @@ public class ThreadDAO {
             } catch (Exception e) {
                 return null;
             }
-        else
-            return null;
         return threadEntityOld;
     }
 }

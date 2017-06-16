@@ -99,19 +99,13 @@ public class ThreadModel {
         if(threadEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
         voteEntity.setThreadId(threadEntity.getId());
         threadEntity.setVotes(voteDAO.getVote(voteEntity, threadEntity.getVotes()));
-//        threadEntity.setCreated(Helper.dateFixZero(threadEntity.getCreated()));
         return new ResponseEntity<>(threadEntity.getJSONString(), HttpStatus.OK);
     }
 
     public ResponseEntity<String> getThreadDetails(String slug_or_id) {
         final ThreadEntity threadEntity = threadDAO.getThread(slug_or_id);
         if(threadEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
-        try {
-//            threadEntity.setCreated(Helper.dateFixZero(threadEntity.getCreated()));
-            return new ResponseEntity<>(threadEntity.getJSONString(), HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(threadEntity.getJSONString(), HttpStatus.OK);
     }
 
     public ResponseEntity<String> getThreadPosts(String slug_or_id, Integer limit,
@@ -120,7 +114,7 @@ public class ThreadModel {
         final ThreadEntity threadEntity = threadDAO.getThread(slug_or_id);
         if (threadEntity != null) {
             query.append(threadEntity.getId());
-            List<PostEntity> posts = null;
+            List<PostEntity> posts;
             if (sort == null) sort = "flat";
             switch (sort) {
                 case "flat": {
