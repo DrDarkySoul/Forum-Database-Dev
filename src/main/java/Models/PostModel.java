@@ -8,11 +8,8 @@ import Entities.ForumEntity;
 import Entities.PostEntity;
 import Entities.ThreadEntity;
 import Entities.UserEntity;
-import Helpers.DataBaseHelper;
-import Helpers.DateFix;
-import Mappers.PostMapper;
+import Helpers.Helper;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -44,7 +41,7 @@ public class PostModel {
             postEntity.setId(id);
         }
         final JSONObject result = new JSONObject();
-        postEntity.setCreated(DataBaseHelper.dateFixAppend0300(postEntity.getCreated()));
+        postEntity.setCreated(Helper.dateFixThree(postEntity.getCreated()));
         result.put("post", postEntity.getJSON());
         final String[] relatedVariants = related.split(",");
         for (String variant : relatedVariants) {
@@ -79,7 +76,7 @@ public class PostModel {
                 postEntity.setMessage(newPost.getMessage());
                 postDAO.updatePost(postEntity);
             }
-        postEntity.setCreated(DataBaseHelper.dateFixAppend0300(postEntity.getCreated()));
+        postEntity.setCreated(Helper.dateFixThree(postEntity.getCreated()));
         return new ResponseEntity<>(postEntity.getJSONString(), HttpStatus.OK);
     }
 }

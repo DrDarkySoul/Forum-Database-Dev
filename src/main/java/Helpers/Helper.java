@@ -3,12 +3,13 @@ package Helpers;
 /**
  * Created by Rishat_Valitov on 16.06.17.
  */
-public class DataBaseHelper {
+
+public class Helper {
     private Integer id = 0;
     private String slug = "";
     private String flag = "";
 
-    public DataBaseHelper(String rawIdentifier) {
+    public Helper(String rawIdentifier) {
         try {
             id = Integer.parseInt(rawIdentifier);
             flag = "id";
@@ -17,8 +18,6 @@ public class DataBaseHelper {
             flag = "slug";
         }
     }
-
-    public DataBaseHelper() {}
 
     public String getFlag(){
         return flag;
@@ -32,14 +31,14 @@ public class DataBaseHelper {
         return id;
     }
 
-    public static String dateFixAppend00(String date) {
+    public static String dateFixZero(String date) {
         final StringBuilder time = new StringBuilder(date);
         time.replace(10, 11, "T");
         time.append(":00");
         return time.toString();
     }
 
-    public static String dateFixAppend0300(String date) {
+    public static String dateFixThree(String date) {
         final StringBuilder time = new StringBuilder(date);
 
         if (time.substring(time.length() - 3).equals("+00")) {
@@ -52,7 +51,7 @@ public class DataBaseHelper {
         return time.toString();
     }
 
-    public static String dataFixReplaceSpace(String date) {
+    public static String dataFixSpace(String date) {
         final StringBuilder time = new StringBuilder(date);
         time.replace(10, 11, " ");
         return time.toString();

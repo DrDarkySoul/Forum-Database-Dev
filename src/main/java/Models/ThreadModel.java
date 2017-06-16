@@ -1,18 +1,17 @@
 package Models;
 
+import DAO.PostDAO;
+import DAO.ThreadDAO;
 import DAO.UserDAO;
+import DAO.VoteDAO;
 import Entities.PostEntity;
 import Entities.ThreadEntity;
 import Entities.UserEntity;
 import Entities.VoteEntity;
-import Helpers.EntryIdentifier;
-import Helpers.DateFix;
+import Helpers.Helper;
 import Mappers.PostMapper;
-import Mappers.ThreadMapper;
-import Mappers.VoteMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,22 +22,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ThreadModel {
-    private final JdbcTemplate jdbcTemplate;
-    @Autowired
+    private final ThreadDAO threadDAO;
+    private final UserDAO userDAO;
+    private final PostDAO postDAO;
+    private final VoteDAO voteDAO;
+
     public ThreadModel(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+        this.threadDAO = new ThreadDAO(jdbcTemplate);
+        this.userDAO = new UserDAO(jdbcTemplate);
+        this.postDAO = new PostDAO(jdbcTemplate);
+        this.voteDAO = new VoteDAO(jdbcTemplate);
     }
 
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public ResponseEntity<String> createPosts(ArrayList<PostEntity> postEntityArrayList, String slug_or_id) {
         // Thread check
-        final ThreadEntity threadEntity = this.getThreadEntity(slug_or_id);
-        if(threadEntity == null)
-            return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
+        final ThreadEntity threadEntity = threadDAO.getThread(slug_or_id);
+        if(threadEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
         List<Object[]> postsList = new ArrayList<>();
         final Timestamp nowTimestamp = new Timestamp(System.currentTimeMillis());
         final JSONArray result = new JSONArray();
-        Integer maxId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM post", Integer.class);
+        Integer maxId = postDAO.getMaxId();
         if(maxId == null) maxId = 0;
         Integer currId = maxId;
         Integer id = currId;
@@ -56,16 +60,16 @@ public class ThreadModel {
                     return new ResponseEntity<>("", HttpStatus.CONFLICT);
                 }
             // User check
-            final UserEntity userEntity = new UserDAO(jdbcTemplate).getUserFromNickname(post.getAuthor());
+            final UserEntity userEntity = userDAO.getUserFromNickname(post.getAuthor());
             if(userEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
             post.setForum(threadEntity.getForum());
             post.setThread(threadEntity.getId());
-            String createdTimeWithTS = DateFix.transformWithAppend0300(nowTimestamp.toString());
+            String createdTimeWithTS = Helper.dateFixThree(nowTimestamp.toString());
             post.setCreated(createdTimeWithTS);
             if (post.getParent() == 0) {
                 Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM post WHERE parent = 0 AND thread = ?",
                         new Object[]{post.getThread()}, Integer.class);
-                final String path = String.format("%1$06x", count + countS);
+                final String path = Integer.toHexString(count + countS);
                 countS++;
                 post.setPath(path);
             } else {
@@ -73,10 +77,10 @@ public class ThreadModel {
                     final String prevPath = jdbcTemplate.queryForObject("SELECT path FROM post WHERE id = ?;",
                             new Object[]{post.getParent()}, String.class);
                     currId++;
-                    final String path = prevPath+'.'+String.format("%1$06x",currId);
+                    final String path = prevPath+'.' + Integer.toHexString(currId);
                     post.setPath(path);
                 } catch (Exception e) {
-                    final String path = "000000"+'.'+String.format("%1$06x",currId);
+                    final String path = "000000" + '.' + Integer.toHexString(currId);
                     post.setPath(path);
                 }
             }
@@ -101,41 +105,21 @@ public class ThreadModel {
 
     @Transactional
     public ResponseEntity<String> vote(VoteEntity voteEntity, String slug_or_id) {
-        if(new UserDAO(jdbcTemplate).getUserFromNickname(voteEntity.getNickname()) == null)
+        if(userDAO.getUserFromNickname(voteEntity.getNickname()) == null)
             return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
-        final ThreadEntity threadEntity = this.getThreadEntity(slug_or_id);
-        if(threadEntity == null)
-            return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
-        Integer votes = threadEntity.getVotes();
+        final ThreadEntity threadEntity = threadDAO.getThread(slug_or_id);
+        if(threadEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
         voteEntity.setThreadId(threadEntity.getId());
-        final List<VoteEntity> voteEntityList = jdbcTemplate.query(
-                "SELECT * FROM vote WHERE thread_id = ? AND LOWER(nickname) = LOWER(?)",
-                new Object[]{voteEntity.getThreadId(), voteEntity.getNickname()}, new VoteMapper());
-        if (voteEntityList.isEmpty()) {
-            votes += voteEntity.getVoice();
-            jdbcTemplate.update("UPDATE thread SET votes = ? WHERE id = ?", votes, voteEntity.getThreadId());
-            jdbcTemplate.update("INSERT INTO vote (thread_id, nickname, voice) VALUES(?, ?, ?)",
-                    voteEntity.getThreadId(), voteEntity.getNickname(), voteEntity.getVoice());
-        } else {
-            jdbcTemplate.update("UPDATE vote SET voice = ? WHERE id = ? ",
-                    voteEntity.getVoice(), voteEntityList.get(0).getId());
-            if (((voteEntity.getVoice() == -1) && (voteEntityList.get(0).getVoice() == 1)) ||
-                    ((voteEntity.getVoice() == 1) && (voteEntityList.get(0).getVoice() == -1))) {
-                votes += voteEntity.getVoice() * 2;
-                jdbcTemplate.update("UPDATE thread SET votes = ? WHERE id = ?", votes, voteEntity.getThreadId());
-            }
-        }
-        threadEntity.setVotes(votes);
-        threadEntity.setCreated(DateFix.transformWithAppend00(threadEntity.getCreated()));
+        threadEntity.setVotes(voteDAO.getVote(voteEntity, threadEntity.getVotes()));
+        threadEntity.setCreated(Helper.dateFixZero(threadEntity.getCreated()));
         return new ResponseEntity<>(threadEntity.getJSONString(), HttpStatus.OK);
     }
 
     public ResponseEntity<String> getThreadDetails(String slug_or_id) {
-        final ThreadEntity threadEntity = this.getThreadEntity(slug_or_id);
-        if(threadEntity == null)
-            return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
+        final ThreadEntity threadEntity = threadDAO.getThread(slug_or_id);
+        if(threadEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
         try {
-            threadEntity.setCreated(DateFix.transformWithAppend00(threadEntity.getCreated()));
+            threadEntity.setCreated(Helper.dateFixZero(threadEntity.getCreated()));
             return new ResponseEntity<>(threadEntity.getJSONString(), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
@@ -144,15 +128,8 @@ public class ThreadModel {
 
     public ResponseEntity<String> getThreadPosts(String slug_or_id, Integer limit,
                                                  String sort, Boolean desc, Integer marker) {
-        final EntryIdentifier threadIdentifier = new EntryIdentifier(slug_or_id);
         final StringBuilder query = new StringBuilder("SELECT * FROM post WHERE thread = ");
-
-        final ThreadEntity threadEntity;
-        if (threadIdentifier.getFlag().equals("id"))
-            threadEntity = this.getThreadEntityById(threadIdentifier.getId());
-        else
-            threadEntity = this.getThreadEntityBySlug(threadIdentifier.getSlug());
-
+        final ThreadEntity threadEntity = threadDAO.getThread(slug_or_id);
         if (threadEntity != null) {
             query.append(threadEntity.getId());
             List<PostEntity> posts = null;
@@ -179,22 +156,22 @@ public class ThreadModel {
                         if (desc != null && !desc) {
                             if ((maxID - limit - marker) < 0) {
                                 if(marker < 0) marker = 0;
-                                query.append(" AND path >= '").append(String.format("%1$06x", marker)).append("'");
+                                query.append(" AND path >= '").append(Integer.toHexString(marker)).append("'");
                             } else
-                                query.append(" AND path >= '").append(String.format("%1$06x", marker)).append("'")
-                                        .append(" AND path < '").append(String.format("%1$06x", marker + limit)).append("'");
+                                query.append(" AND path >= '").append(Integer.toHexString(marker)).append("'")
+                                        .append(" AND path < '").append(Integer.toHexString(marker + limit)).append("'");
                         } else {
                             if ((maxID - limit - marker) < 0) {
                                 Integer high = maxID - marker;
                                 if(high < 0) high = 0;
-                                query.append(" AND path >= ").append("'0'").append(" AND path < '").append(String.format("%1$06x", high)).append("'");
+                                query.append(" AND path >= ").append("'0'").append(" AND path < '").append(Integer.toHexString(high)).append("'");
                             } else {
                                 Integer top = maxID - marker;
                                 Integer bottom = maxID - limit - marker;
                                 if(top < 0) top = 0;
                                 if(bottom < 0) bottom = 0;
-                                query.append(" AND path >= '").append(String.format("%1$06x", bottom)).append("'")
-                                        .append(" AND path < '").append(String.format("%1$06x", top)).append("'");
+                                query.append(" AND path >= '").append(Integer.toHexString(bottom)).append("'")
+                                        .append(" AND path < '").append(Integer.toHexString(top)).append("'");
                             }
                         }
                     }
@@ -223,45 +200,13 @@ public class ThreadModel {
             final JSONArray resultArray = new JSONArray();
             if (posts != null)
                 for (PostEntity postEntity : posts) {
-                    postEntity.setCreated(DateFix.transformWithAppend0300(postEntity.getCreated()));
+                    postEntity.setCreated(Helper.dateFixThree(postEntity.getCreated()));
                     resultArray.put(postEntity.getJSON());
                 }
             result.put("posts", resultArray);
             return new ResponseEntity<>(result.toString(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
-        }
-    }
-
-    ThreadEntity getThreadEntityBySlug(String slug) {
-        try {
-            return jdbcTemplate.queryForObject("SELECT * FROM thread WHERE LOWER(slug) = LOWER(?)",
-                    new Object[]{slug}, new ThreadMapper());
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private ThreadEntity getThreadEntityById(Integer id) {
-        try {
-            return jdbcTemplate.queryForObject("SELECT * FROM thread WHERE id = ?",
-                    new Object[]{id}, new ThreadMapper());
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    ThreadEntity getThreadEntity(String slug_or_id) {
-        final EntryIdentifier threadIdentifier = new EntryIdentifier(slug_or_id);
-        try {
-            if (threadIdentifier.getFlag().equals("id"))
-                return jdbcTemplate.queryForObject("SELECT * FROM thread WHERE id = ?",
-                        new Object[]{threadIdentifier.getId()}, new ThreadMapper());
-            else
-                return jdbcTemplate.queryForObject("SELECT * FROM thread WHERE LOWER(slug) = LOWER(?)",
-                        new Object[]{threadIdentifier.getSlug()}, new ThreadMapper());
-        } catch (Exception e) {
-            return null;
         }
     }
 
@@ -302,10 +247,10 @@ public class ThreadModel {
                     return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
                 }
             }
-            final ThreadEntity threadEntity = this.getThreadEntity(slug_or_id);
+            final ThreadEntity threadEntity = threadDAO.getThread(slug_or_id);
             if (threadEntity != null) {
                 newData = threadEntity;
-                newData.setCreated(DateFix.transformWithAppend00(newData.getCreated()));
+                newData.setCreated(Helper.dateFixZero(newData.getCreated()));
             }
             return new ResponseEntity<>(newData.getJSONString(), HttpStatus.OK);
         } else

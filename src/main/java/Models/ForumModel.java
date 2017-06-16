@@ -6,15 +6,10 @@ import DAO.UserDAO;
 import Entities.ForumEntity;
 import Entities.ThreadEntity;
 import Entities.UserEntity;
-import Helpers.DataBaseHelper;
-import Helpers.DateFix;
-import Mappers.ThreadMapper;
-import Mappers.UserMapper;
-import org.json.JSONArray;
+import Helpers.Helper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import java.util.List;
 
 public class ForumModel {
     private final ForumDAO forumDAO;
@@ -80,7 +75,7 @@ public class ForumModel {
         final ForumEntity forum = forumDAO.getForumFromSlug(forumSlug);
         if(forum == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
         String query = this.queryGetThreadBuilder(limit, since, desc);
-        if (since != null) since = DataBaseHelper.dataFixReplaceSpace(since);
+        if (since != null) since = Helper.dataFixSpace(since);
         String result = threadDAO.getThreadList(forumSlug, limit, since, query);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

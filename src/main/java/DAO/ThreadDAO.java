@@ -1,8 +1,7 @@
 package DAO;
 
 import Entities.ThreadEntity;
-import Helpers.DataBaseHelper;
-import Helpers.DateFix;
+import Helpers.Helper;
 import Mappers.ThreadMapper;
 import org.json.JSONArray;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,7 +22,7 @@ public class ThreadDAO {
     }
 
     public ThreadEntity getThread(String slug_or_id) {
-        final DataBaseHelper threadIdentifier = new DataBaseHelper(slug_or_id);
+        final Helper threadIdentifier = new Helper(slug_or_id);
         try {
             final ThreadEntity threadEntity;
             if (threadIdentifier.getFlag().equals("id"))
@@ -32,7 +31,7 @@ public class ThreadDAO {
             else
                 threadEntity = jdbcTemplate.queryForObject("SELECT * FROM thread WHERE LOWER(slug) = LOWER(?)",
                         new Object[]{threadIdentifier.getSlug()}, new ThreadMapper());
-            threadEntity.setCreated(DataBaseHelper.dateFixAppend00(threadEntity.getCreated()));
+            threadEntity.setCreated(Helper.dateFixZero(threadEntity.getCreated()));
             return threadEntity;
         } catch (Exception e) {
             return null;
@@ -75,8 +74,10 @@ public class ThreadDAO {
             threadEntityList = jdbcTemplate.query(query, new Object[]{forumSlug}, new ThreadMapper());
         final JSONArray result = new JSONArray();
         threadEntityList.forEach(threadEntity -> {
-            threadEntity.setCreated(DataBaseHelper.dateFixAppend00(threadEntity.getCreated()));
+            threadEntity.setCreated(Helper.dateFixZero(threadEntity.getCreated()));
             result.put(threadEntity.getJSON());});
         return result.toString();
     }
+
+
 }

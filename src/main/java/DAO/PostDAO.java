@@ -23,6 +23,7 @@ public class PostDAO {
         }
     }
 
+    // TODO: Fix query
     public PostEntity getPostMinId() {
         try {
             return jdbcTemplate.queryForObject("SELECT * FROM post WHERE id IN (SELECT MIN(id) FROM post)",
@@ -38,5 +39,13 @@ public class PostDAO {
             jdbcTemplate.update("UPDATE post SET message = ?, isedited = true WHERE id = ?",
                     postEntity.getMessage(), postEntity.getId());
         } catch (Exception ignored) {}
+    }
+
+    public Integer getMaxId() {
+        try {
+            return jdbcTemplate.queryForObject("SELECT MAX(id) FROM post", Integer.class);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
