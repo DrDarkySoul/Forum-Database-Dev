@@ -4,6 +4,8 @@ import Entities.ThreadEntity;
 import Helpers.Helper;
 import Mappers.ThreadMapper;
 import org.json.JSONArray;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -43,14 +45,14 @@ public class ThreadDAO {
         jdbcTemplate.update(connection -> {
             final PreparedStatement preparedStatement = connection.prepareStatement(
                     "INSERT INTO thread (title,author,forum,message,slug," +
-                    "votes,created) VALUES (?,?,?,?,?,?,?::timestamptz)",
+                            "votes,created) VALUES (?,?,?,?,?,?,?::TIMESTAMPTZ)",
                     new String[]{"id"});
             preparedStatement.setString(1, threadEntity.getTitle());
             preparedStatement.setString(2, threadEntity.getAuthor());
             preparedStatement.setString(3, threadEntity.getForum());
             preparedStatement.setString(4, threadEntity.getMessage());
             preparedStatement.setString(5, threadEntity.getSlug());
-            preparedStatement.setInt   (6, threadEntity.getVotes());
+            preparedStatement.setInt(6, threadEntity.getVotes());
             preparedStatement.setString(7, threadEntity.getCreated());
             return preparedStatement;
         }, keyHolder);
@@ -67,15 +69,46 @@ public class ThreadDAO {
                 threadEntityList = jdbcTemplate.query(query, new Object[]{forumSlug, since, limit}, new ThreadMapper());
             else
                 threadEntityList = jdbcTemplate.query(query, new Object[]{forumSlug, limit}, new ThreadMapper());
-        else
-        if (since != null)
+        else if (since != null)
             threadEntityList = jdbcTemplate.query(query, new Object[]{forumSlug, since}, new ThreadMapper());
         else
             threadEntityList = jdbcTemplate.query(query, new Object[]{forumSlug}, new ThreadMapper());
         final JSONArray result = new JSONArray();
         threadEntityList.forEach(threadEntity -> {
             threadEntity.setCreated(Helper.dateFixZero(threadEntity.getCreated()));
-            result.put(threadEntity.getJSON());});
+            result.put(threadEntity.getJSON());
+        });
         return result.toString();
+    }
+
+    public ThreadEntity updateThread(ThreadEntity threadEntityNew, ThreadEntity threadEntityOld) {
+        if (threadEntityNew.getMessage() != null && threadEntityNew.getTitle() != null)
+            try {
+                jdbcTemplate.update("UPDATE thread SET title = ?, message = ? WHERE id = ?",
+                        threadEntityNew.getTitle(), threadEntityNew.getMessage(), threadEntityOld.getId());
+                threadEntityOld.setTitle(threadEntityNew.getTitle());
+                threadEntityOld.setMessage(threadEntityNew.getMessage());
+            } catch (Exception e) {
+                return null;
+            }
+        else if (threadEntityNew.getMessage() != null && threadEntityNew.getTitle() == null)
+            try {
+                jdbcTemplate.update("UPDATE thread SET message = ? WHERE id = ?",
+                        threadEntityNew.getMessage(), threadEntityOld.getId());
+                threadEntityOld.setMessage(threadEntityNew.getMessage());
+            } catch (Exception e) {
+                return null;
+            }
+        else if (threadEntityNew.getMessage() == null && threadEntityNew.getTitle() != null)
+            try {
+                jdbcTemplate.update("UPDATE thread SET title = ? WHERE id = ?",
+                        threadEntityNew.getTitle(), threadEntityOld.getId());
+                threadEntityOld.setTitle(threadEntityNew.getTitle());
+            } catch (Exception e) {
+                return null;
+            }
+        else
+            return null;
+        return threadEntityOld;
     }
 }

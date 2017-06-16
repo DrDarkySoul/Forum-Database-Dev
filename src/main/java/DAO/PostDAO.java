@@ -2,6 +2,8 @@ package DAO;
 
 import Entities.PostEntity;
 import Mappers.PostMapper;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
@@ -54,5 +56,32 @@ public class PostDAO {
     public void butchInsertPost(List<Object[]> list) {
         jdbcTemplate.batchUpdate("INSERT INTO post (parent,author,message,isEdited,forum,thread,path,created) " +
                 "VALUES (?,?,?,?,?,?,?,?::timestamptz)", list);
+    }
+
+    public Boolean parentCheck(Integer parent, Integer threadId) {
+        try {
+            final List<PostEntity> posts = jdbcTemplate.query(
+                    "SELECT * FROM post WHERE id = ? AND thread = ?",
+                    new Object[]{parent, threadId}, new PostMapper());
+            if (posts.isEmpty())
+                return false;
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    public Integer getCountPostsZeroParent(Integer threadId) {
+        return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM post WHERE parent = 0 AND thread = ?",
+                new Object[]{threadId}, Integer.class);
+    }
+
+    public String getPath(Integer postId) {
+        return jdbcTemplate.queryForObject("SELECT path FROM post WHERE id = ?;",
+                new Object[]{postId}, String.class);
+    }
+
+    public List<PostEntity> executeQuery(String query) {
+        return jdbcTemplate.query(query, new PostMapper());
     }
 }

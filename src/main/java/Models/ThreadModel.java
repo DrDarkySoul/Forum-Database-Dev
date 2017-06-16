@@ -48,16 +48,9 @@ public class ThreadModel {
         Integer countS = 0;
         for (PostEntity post : postEntityArrayList) {
             id++;
-            if (post.getParent() != 0 && postEntityArrayList.size() < 100)
-                try {
-                    final List<PostEntity> posts = jdbcTemplate.query(
-                            "SELECT * FROM post WHERE id = ? AND thread = ?",
-                            new Object[]{post.getParent(), threadEntity.getId()}, new PostMapper());
-                    if (posts.isEmpty())
-                        return new ResponseEntity<>("", HttpStatus.CONFLICT);
-                } catch (Exception e) {
-                    return new ResponseEntity<>("", HttpStatus.CONFLICT);
-                }
+            if (post.getParent() != 0 && postEntityArrayList.size() < 100 &&
+                    !postDAO.parentCheck(post.getParent(), threadEntity.getId()))
+                return new ResponseEntity<>("", HttpStatus.CONFLICT);
             // User check
             final UserEntity userEntity = userDAO.getUserFromNickname(post.getAuthor());
             if(userEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
@@ -66,15 +59,13 @@ public class ThreadModel {
             String createdTimeWithTS = Helper.dateFixThree(nowTimestamp.toString());
             post.setCreated(createdTimeWithTS);
             if (post.getParent() == 0) {
-                Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM post WHERE parent = 0 AND thread = ?",
-                        new Object[]{post.getThread()}, Integer.class);
+                Integer count = postDAO.getCountPostsZeroParent(post.getThread());
                 final String path = Integer.toHexString(count + countS);
                 countS++;
                 post.setPath(path);
             } else {
                 try {
-                    final String prevPath = jdbcTemplate.queryForObject("SELECT path FROM post WHERE id = ?;",
-                            new Object[]{post.getParent()}, String.class);
+                    final String prevPath = postDAO.getPath(post.getParent());
                     currId++;
                     final String path = prevPath+'.' + Integer.toHexString(currId);
                     post.setPath(path);
@@ -108,7 +99,7 @@ public class ThreadModel {
         if(threadEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
         voteEntity.setThreadId(threadEntity.getId());
         threadEntity.setVotes(voteDAO.getVote(voteEntity, threadEntity.getVotes()));
-        threadEntity.setCreated(Helper.dateFixZero(threadEntity.getCreated()));
+//        threadEntity.setCreated(Helper.dateFixZero(threadEntity.getCreated()));
         return new ResponseEntity<>(threadEntity.getJSONString(), HttpStatus.OK);
     }
 
@@ -116,13 +107,12 @@ public class ThreadModel {
         final ThreadEntity threadEntity = threadDAO.getThread(slug_or_id);
         if(threadEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
         try {
-            threadEntity.setCreated(Helper.dateFixZero(threadEntity.getCreated()));
+//            threadEntity.setCreated(Helper.dateFixZero(threadEntity.getCreated()));
             return new ResponseEntity<>(threadEntity.getJSONString(), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
         }
     }
-    
 
     public ResponseEntity<String> getThreadPosts(String slug_or_id, Integer limit,
                                                  String sort, Boolean desc, Integer marker) {
@@ -149,8 +139,7 @@ public class ThreadModel {
                 }
                 case "parent_tree": {
                     if (limit != null) {
-                        final Integer maxID = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM post WHERE parent = 0 AND thread = ? ",
-                                new Object[]{threadEntity.getId()}, Integer.class);
+                        final Integer maxID = postDAO.getCountPostsZeroParent(threadEntity.getId());
                         if (desc != null && !desc) {
                             if ((maxID - limit - marker) < 0) {
                                 if(marker < 0) marker = 0;
@@ -182,10 +171,7 @@ public class ThreadModel {
                     break;
                 }
             }
-            try {
-                posts = jdbcTemplate.query(query.toString(), new PostMapper());
-            } catch (Exception ignored) {}
-
+            posts = postDAO.executeQuery(query.toString());
             final JSONObject result = new JSONObject();
             if (posts != null && posts.isEmpty()) result.put("marker", marker.toString());
             else {
@@ -208,50 +194,11 @@ public class ThreadModel {
         }
     }
 
-    public ResponseEntity<String> updateThread(ThreadEntity newData, String slug_or_id) {
-        final EntryIdentifier threadIdentifier = new EntryIdentifier(slug_or_id);
-        if (this.getThreadDetails(slug_or_id).getStatusCode().equals(HttpStatus.OK)) {
-            if (newData.getMessage() != null && newData.getTitle() != null)
-                try {
-                    if (threadIdentifier.getFlag().equals("id"))
-                        jdbcTemplate.update("UPDATE thread SET title = ?, message = ? WHERE id = ?",
-                                newData.getTitle(), newData.getMessage(), threadIdentifier.getId());
-                    else
-                        jdbcTemplate.update("UPDATE thread SET message = ?, title = ? WHERE LOWER(slug) = LOWER(?)",
-                                newData.getMessage(), newData.getTitle(), threadIdentifier.getSlug());
-                } catch (Exception e) {
-                    return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
-                }
-            else if (newData.getMessage() != null && newData.getTitle() == null)
-                try {
-                    if (threadIdentifier.getFlag().equals("id"))
-                        jdbcTemplate.update("UPDATE thread SET message=? WHERE id=?",
-                                newData.getMessage(), threadIdentifier.getId());
-                    else
-                        jdbcTemplate.update("UPDATE thread SET message=? WHERE LOWER(slug)=LOWER(?)",
-                                newData.getMessage(), threadIdentifier.getSlug());
-                } catch (Exception e) {
-                    return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
-                }
-            else if (newData.getMessage() == null && newData.getTitle() != null) {
-                try {
-                    if (threadIdentifier.getFlag().equals("id"))
-                        jdbcTemplate.update("UPDATE thread SET  title=? WHERE id=?",
-                                newData.getTitle(), threadIdentifier.getId());
-                    else
-                        jdbcTemplate.update("UPDATE thread SET title=? WHERE LOWER(slug)=LOWER(?)",
-                                newData.getTitle(), threadIdentifier.getSlug());
-                } catch (Exception e) {
-                    return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
-                }
-            }
-            final ThreadEntity threadEntity = threadDAO.getThread(slug_or_id);
-            if (threadEntity != null) {
-                newData = threadEntity;
-                newData.setCreated(Helper.dateFixZero(newData.getCreated()));
-            }
-            return new ResponseEntity<>(newData.getJSONString(), HttpStatus.OK);
-        } else
-            return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
+    public ResponseEntity<String> updateThread(ThreadEntity newData, String slugOrId) {
+        ThreadEntity oldData = threadDAO.getThread(slugOrId);
+        if(oldData == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
+        ThreadEntity result = threadDAO.updateThread(newData, oldData);
+        if(result == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(result.getJSONString(), HttpStatus.OK);
     }
 }
