@@ -26,6 +26,8 @@ hs_err_pid*
 
 *.lst
 
-*.properties
-
 *.original
+
+target/classes/
+
+target/maven-archiver/
