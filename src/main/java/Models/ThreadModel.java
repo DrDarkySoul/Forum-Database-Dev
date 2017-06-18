@@ -83,6 +83,10 @@ public class ThreadModel {
                     post.getThread(),
                     post.getPath(),
                     post.getCreated()});
+            if(post.getId() != null){
+
+                System.out.print(post.getId());
+            }
             post.setId(id);
             result.put(post.getJSON());
         }

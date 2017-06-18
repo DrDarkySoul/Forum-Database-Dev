@@ -18,8 +18,8 @@ public class VoteDAO {
 
     public Integer getVote(VoteEntity voteEntity, Integer votes) {
         final List<VoteEntity> voteEntityList = jdbcTemplate.query(
-                "SELECT * FROM vote WHERE thread_id = ? AND LOWER(nickname) = LOWER(?)",
-                new Object[]{voteEntity.getThreadId(), voteEntity.getNickname()}, new VoteMapper());
+                "SELECT * FROM vote WHERE (thread_id, LOWER(nickname))=(?,?)",
+                new Object[]{voteEntity.getThreadId(), voteEntity.getNickname().toLowerCase()}, new VoteMapper());
         if (voteEntityList.isEmpty()) {
             votes += voteEntity.getVoice();
             jdbcTemplate.update("UPDATE thread SET votes = ? WHERE id = ?", votes, voteEntity.getThreadId());
