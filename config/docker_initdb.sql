@@ -16,6 +16,25 @@ CREATE SEQUENCE post_id_seq;
 CREATE SEQUENCE thread_id_seq;
 CREATE SEQUENCE users_id_seq;
 
+create table thread
+(
+  id serial not null
+    constraint thread_pkey
+    primary key,
+  title text not null,
+  forum text not null,
+  message text,
+  votes integer,
+  slug text,
+  created timestamp with time zone,
+  author text
+)
+;
+
+create index index_thread__slug
+  on thread (lower(slug))
+;
+
 create table users
 (
   id serial not null
@@ -81,23 +100,8 @@ create index index_post__thread
   on post (thread)
 ;
 
-create table thread
-(
-  id serial not null
-    constraint thread_pkey
-    primary key,
-  title text not null,
-  forum text not null,
-  message text,
-  votes integer,
-  slug text,
-  created timestamp with time zone,
-  author text
-)
-;
-
-create index index_thread__slug
-  on thread (lower(slug))
+create index index_post__created
+  on post (created)
 ;
 
 create table vote
@@ -126,4 +130,14 @@ create table link_user_forum
   unique (userid, forum_slug)
 )
 ;
+
+create table count_parent_zero
+(
+  thread_id integer
+    constraint count_parent_zero_thread_id_fkey
+    references thread,
+  count integer default 0 not null
+)
+;
+
 

@@ -4,6 +4,7 @@ import Entities.PostEntity;
 import Mappers.PostMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -77,6 +78,10 @@ public class PostDAO {
     public String getPath(Integer postId) {
         return jdbcTemplate.queryForObject("SELECT path FROM post WHERE id = ?;",
                 new Object[]{postId}, String.class);
+    }
+
+    public List<Integer> getIdList(Timestamp time) {
+        return jdbcTemplate.queryForList("SELECT id FROM post WHERE created = ? ORDER BY id ", new Object[]{time}, Integer.class);
     }
 
     public List<PostEntity> executeQuery(String query) {

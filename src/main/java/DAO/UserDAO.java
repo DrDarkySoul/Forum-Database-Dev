@@ -1,10 +1,9 @@
 package DAO;
 
 import Entities.UserEntity;
+import Helpers.Helper;
 import Mappers.UserMapper;
 import org.json.JSONArray;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
@@ -12,6 +11,7 @@ import java.util.List;
 /**
  * Created by Rishat_Valitov on 16.06.17.
  */
+
 public class UserDAO {
     private final JdbcTemplate jdbcTemplate;
 
@@ -23,6 +23,7 @@ public class UserDAO {
         try {
             jdbcTemplate.update("INSERT INTO users (nickname, fullname, about, email) VALUES (?,?,?,?)",
                     userEntity.getNickname(), userEntity.getFullname(), userEntity.getAbout(), userEntity.getEmail());
+            Helper.incUser();
             return userEntity.getJSONString();
         } catch (Exception e) {
             return null;
@@ -30,9 +31,16 @@ public class UserDAO {
     }
 
     public String getConflictUsers(UserEntity userEntity) {
-        final List<UserEntity> answer = jdbcTemplate.query(
-                "SELECT * FROM users WHERE LOWER(email) = LOWER(?) OR LOWER(nickname) = LOWER(?)",
-                new Object[]{userEntity.getEmail(), userEntity.getNickname()}, new UserMapper());
+        final List<UserEntity> answer;
+        try {
+            answer = jdbcTemplate.query(
+                    "SELECT * FROM users WHERE LOWER(email) = LOWER(?) OR LOWER(nickname) = LOWER(?)",
+                    new Object[]{userEntity.getEmail(), userEntity.getNickname()}, new UserMapper());
+
+        } catch (Exception e) {
+            return null;
+        }
+        if(answer.isEmpty()) return null;
         final JSONArray result = new JSONArray();
         answer.forEach(row -> result.put(row.getJSON()));
         return result.toString();
@@ -40,8 +48,8 @@ public class UserDAO {
 
     public String updateUser(UserEntity userEntity) {
         try {
-            jdbcTemplate.update("UPDATE users SET (fullname,about,email)=(?,?,?) WHERE LOWER(nickname)= LOWER(?)",
-                    userEntity.getFullname(), userEntity.getAbout(), userEntity.getEmail(), userEntity.getNickname());
+            jdbcTemplate.update("UPDATE users SET (fullname, about, email) = (?, ?, ?) WHERE LOWER(nickname) = ?",
+                    userEntity.getFullname(), userEntity.getAbout(), userEntity.getEmail(), userEntity.getNickname().toLowerCase());
             return userEntity.getJSONString();
         } catch (Exception e) {
             return null;
@@ -50,8 +58,8 @@ public class UserDAO {
 
     public UserEntity getUserFromNickname(String nickname) {
         try {
-            return jdbcTemplate.queryForObject("SELECT * FROM users WHERE LOWER(nickname) = LOWER(?)",
-                    new Object[]{nickname}, new UserMapper());
+            return jdbcTemplate.queryForObject("SELECT * FROM users WHERE LOWER(nickname) = ?",
+                    new Object[]{nickname.toLowerCase()}, new UserMapper());
         } catch (Exception e) {
             return null;
         }

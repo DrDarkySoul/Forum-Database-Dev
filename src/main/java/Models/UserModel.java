@@ -2,15 +2,10 @@ package Models;
 
 import DAO.UserDAO;
 import Entities.UserEntity;
-import Mappers.UserMapper;
-import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import java.util.List;
 
 public class UserModel {
 
@@ -21,12 +16,11 @@ public class UserModel {
     }
 
     public ResponseEntity<String> createUser(UserEntity userEntity) {
-        String result = userDAO.insertUser(userEntity);
-        if(result == null) {
-            String conflictResult = userDAO.getConflictUsers(userEntity);
-            return new ResponseEntity<>(conflictResult, HttpStatus.CONFLICT);
-        } else
-            return new ResponseEntity<>(userEntity.getJSONString(), HttpStatus.CREATED);
+
+        String conflictResult = userDAO.getConflictUsers(userEntity);
+        if(conflictResult != null) return new ResponseEntity<>(conflictResult, HttpStatus.CONFLICT);
+        if(userDAO.insertUser(userEntity) == null) return new ResponseEntity<>("{}", HttpStatus.CONFLICT);
+        return new ResponseEntity<>(userEntity.getJSONString(), HttpStatus.CREATED);
     }
 
     public ResponseEntity<String> getUserProfile(String nickname) {
@@ -36,14 +30,10 @@ public class UserModel {
     }
 
     public ResponseEntity<String> updateProfile(UserEntity newUserEntity, String nickname) {
-        if (newUserEntity.getJSONString().equals("{}"))
-        {
-            newUserEntity = userDAO.getUserFromNickname(nickname);
-            if(newUserEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
-            return new ResponseEntity<>(newUserEntity.getJSONString(), HttpStatus.OK);
-        }
         UserEntity oldUserEntity = userDAO.getUserFromNickname(nickname);
         if(oldUserEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
+        if (newUserEntity.getJSONString().equals("{}"))
+            return new ResponseEntity<>(oldUserEntity.getJSONString(), HttpStatus.OK);
         final JSONObject userOld = oldUserEntity.getJSON();
         final JSONObject userNew = newUserEntity.getJSON();
         if (!userNew.has("about"))    newUserEntity.setAbout(userOld.get("about").toString());

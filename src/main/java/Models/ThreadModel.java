@@ -14,9 +14,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class ThreadModel {
     private final ThreadDAO threadDAO;
@@ -40,14 +43,12 @@ public class ThreadModel {
         if(threadEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
         List<Object[]> postsList = new ArrayList<>();
         final Timestamp nowTimestamp = new Timestamp(System.currentTimeMillis());
-        final JSONArray result = new JSONArray();
+        final String createdTimeWithTS = Helper.dateFixThree(nowTimestamp.toString());
         Integer maxId = postDAO.getMaxId();
         if(maxId == null) maxId = 0;
         Integer currId = maxId;
-        Integer id = currId;
-        Integer countS = 0;
+        Integer countZeroParentPosts = 0;
         for (PostEntity post : postEntityArrayList) {
-            id++;
             if (post.getParent() != 0 && postEntityArrayList.size() < 100 &&
                     !postDAO.parentCheck(post.getParent(), threadEntity.getId()))
                 return new ResponseEntity<>("", HttpStatus.CONFLICT);
@@ -56,18 +57,18 @@ public class ThreadModel {
             if(userEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
             post.setForum(threadEntity.getForum());
             post.setThread(threadEntity.getId());
-            String createdTimeWithTS = Helper.dateFixThree(nowTimestamp.toString());
             post.setCreated(createdTimeWithTS);
             if (post.getParent() == 0) {
-                Integer count = postDAO.getCountPostsZeroParent(post.getThread());
-                final String path = Integer.toHexString(count + countS);
-                countS++;
+                Integer count = threadDAO.getThreadCount(post.getThread());
+//                Integer count = postDAO.getCountPostsZeroParent(post.getThread());
+                final String path = Integer.toHexString(count + countZeroParentPosts);
+                countZeroParentPosts++;
                 post.setPath(path);
             } else {
                 try {
                     final String prevPath = postDAO.getPath(post.getParent());
                     currId++;
-                    final String path = prevPath+'.' + Integer.toHexString(currId);
+                    final String path = prevPath + '.' + Integer.toHexString(currId);
                     post.setPath(path);
                 } catch (Exception e) {
                     final String path = "000000" + '.' + Integer.toHexString(currId);
@@ -83,15 +84,17 @@ public class ThreadModel {
                     post.getThread(),
                     post.getPath(),
                     post.getCreated()});
-            if(post.getId() != null){
-
-                System.out.print(post.getId());
-            }
-            post.setId(id);
-            result.put(post.getJSON());
         }
         postDAO.butchInsertPost(postsList);
+        threadDAO.updateThreadCountZeroParent(threadEntity.getId(), countZeroParentPosts);
         forumDAO.updatePostCount(threadEntity.getForum(), postEntityArrayList.size());
+        Helper.incPost(postEntityArrayList.size());
+        List<Integer> idList = postDAO.getIdList(nowTimestamp);
+
+        IntStream.range(0, postEntityArrayList.size()).boxed().forEach(index ->
+                    postEntityArrayList.get(index).setId(idList.get(index)));
+        JSONArray result = new JSONArray();
+        for (PostEntity post : postEntityArrayList) result.put(post.getJSON());
         return new ResponseEntity<>(result.toString(), HttpStatus.CREATED);
     }
 
@@ -137,7 +140,7 @@ public class ThreadModel {
                 }
                 case "parent_tree": {
                     if (limit != null) {
-                        final Integer maxID = postDAO.getCountPostsZeroParent(threadEntity.getId());
+                        final Integer maxID = threadDAO.getThreadCount(threadEntity.getId());
                         if (desc != null && !desc) {
                             if ((maxID - limit - marker) < 0) {
                                 if(marker < 0) marker = 0;

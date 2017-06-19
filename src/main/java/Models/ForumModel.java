@@ -56,6 +56,7 @@ public class ForumModel {
         if(forumEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
         threadEntity.setForum(forumEntity.getSlug());
         threadEntity = threadDAO.insertThread(threadEntity, forumSlug);
+        threadDAO.addThreadCountZeroParent(threadEntity.getId());
         return new ResponseEntity<>(threadEntity.getJSONString(), HttpStatus.CREATED);
     }
 

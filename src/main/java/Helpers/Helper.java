@@ -9,6 +9,43 @@ public class Helper {
     private String slug = "";
     private String flag = "";
 
+    public static Integer getForum() {
+        return forum;
+    }
+
+    public static void setForum(Integer forum) {
+        Helper.forum = forum;
+    }
+
+    public static Integer getPost() {
+        return post;
+    }
+
+    public static void setPost(Integer post) {
+        Helper.post = post;
+    }
+
+    public static Integer getThread() {
+        return thread;
+    }
+
+    public static void setThread(Integer thread) {
+        Helper.thread = thread;
+    }
+
+    public static Integer getUser() {
+        return user;
+    }
+
+    public static void setUser(Integer user) {
+        Helper.user = user;
+    }
+
+    static private Integer forum = 0;
+    static private Integer post = 0;
+    static private Integer thread = 0;
+    static private Integer user = 0;
+
     public Helper(String rawIdentifier) {
         try {
             id = Integer.parseInt(rawIdentifier);
@@ -55,5 +92,28 @@ public class Helper {
         final StringBuilder time = new StringBuilder(date);
         time.replace(10, 11, " ");
         return time.toString();
+    }
+
+    public static void incForum() {
+        forum += 1;
+    }
+
+    public static void incPost(Integer num) {
+        post += num;
+    }
+
+    public static void incUser() {
+        user += 1;
+    }
+
+    public static void incThread() {
+        thread += 1;
+    }
+
+    public static void toZero() {
+        forum = 0;
+        user = 0;
+        post = 0;
+        thread = 0;
     }
 }

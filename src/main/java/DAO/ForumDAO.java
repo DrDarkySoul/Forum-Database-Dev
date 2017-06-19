@@ -1,6 +1,7 @@
 package DAO;
 
 import Entities.ForumEntity;
+import Helpers.Helper;
 import Mappers.ForumMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -29,6 +30,7 @@ public class ForumDAO {
                     forumEntity.getTitle(), forumEntity.getUser() , forumEntity.getSlug() ,
                     forumEntity.getPosts(), forumEntity.getThreads());
         } catch (Exception ignored) {}
+        Helper.incForum();
     }
 
     public void updatePostCount(String forumSlug, Integer size) {
