@@ -13,7 +13,7 @@ public class ForumMapper implements RowMapper<ForumEntity> {
         final ForumEntity forumEntity = new ForumEntity();
 
         forumEntity.setTitle(resultSet.getString("title"));
-        forumEntity.setUser(resultSet.getString("user"));
+        forumEntity.setUser(resultSet.getString("author"));
         forumEntity.setSlug(resultSet.getString("slug"));
         forumEntity.setPosts(resultSet.getInt("posts"));
         forumEntity.setThreads(resultSet.getInt("threads"));

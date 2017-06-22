@@ -4,51 +4,32 @@ import org.json.JSONObject;
 
 public class ServiceEntity {
 
-    private Integer forum = 0;
+    private Integer forum  = 0;
     private Integer thread = 0;
-    private Integer post = 0;
-    private Integer user = 0;
+    private Integer post   = 0;
+    private Integer user   = 0;
 
     public ServiceEntity() {}
 
-    public ServiceEntity(Integer forum, Integer thread, Integer post, Integer user) {
-        this.forum = forum;
+    public ServiceEntity(Integer forum,
+                         Integer thread,
+                         Integer post,
+                         Integer user) {
+        this.forum  = forum;
         this.thread = thread;
-        this.post = post;
-        this.user = user;
+        this.post   = post;
+        this.user   = user;
     }
 
-    public Integer getForum() {
-        return forum;
-    }
+    public Integer getForum()  { return forum;  }
+    public Integer getThread() { return thread; }
+    public Integer getPost()   { return post;   }
+    public Integer getUser()   { return user;   }
 
-    public Integer getThread() {
-        return thread;
-    }
-
-    public Integer getPost() {
-        return post;
-    }
-
-    public Integer getUser() {
-        return user;
-    }
-
-    public void setForum(Integer forum) {
-        this.forum = forum;
-    }
-
-    public void setThread(Integer thread) {
-        this.thread = thread;
-    }
-
-    public void setPost(Integer post) {
-        this.post = post;
-    }
-
-    public void setUser(Integer user) {
-        this.user = user;
-    }
+    public void setForum(Integer forum)   { this.forum = forum;   }
+    public void setThread(Integer thread) { this.thread = thread; }
+    public void setPost(Integer post)     { this.post = post;     }
+    public void setUser(Integer user)     { this.user = user;     }
 
     public JSONObject getJSON() {
         final JSONObject jsonObject = new JSONObject();
@@ -61,7 +42,5 @@ public class ServiceEntity {
         return jsonObject;
     }
 
-    public String getJSONString() {
-        return this.getJSON().toString();
-    }
+    public String getJSONString() { return this.getJSON().toString(); }
 }

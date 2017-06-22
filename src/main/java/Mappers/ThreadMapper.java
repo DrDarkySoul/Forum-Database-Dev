@@ -2,7 +2,6 @@ package Mappers;
 
 import Entities.ThreadEntity;
 import org.springframework.jdbc.core.RowMapper;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -19,10 +18,7 @@ public class ThreadMapper implements RowMapper<ThreadEntity> {
         threadEntity.setMessage(resultSet.getString("message"));
         threadEntity.setSlug(resultSet.getString("slug"));
         threadEntity.setCreated(resultSet.getString("created"));
-
-        if (resultSet.getInt("votes") != 0)
-            threadEntity.setVotes(resultSet.getInt("votes"));
-
+        threadEntity.setVotes(resultSet.getInt("votes"));
         return threadEntity;
     }
 }

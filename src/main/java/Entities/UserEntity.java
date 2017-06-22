@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.json.JSONObject;
 
+import javax.persistence.criteria.CriteriaBuilder;
+
 public class UserEntity {
 
+    private Integer id = 0;
     private String nickname = "";
     private String fullname = "";
     private String about = "";

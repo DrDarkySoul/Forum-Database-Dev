@@ -6,68 +6,42 @@ import org.json.JSONObject;
 
 public class VoteEntity {
 
-    private Integer id;
-    private Integer threadId;
-    private Integer voice;
-    private String nickname;
+    private Integer id, threadId, voice;
+    private String author;
 
     public VoteEntity() {}
 
     @JsonCreator
     public VoteEntity(
             @JsonProperty("id") Integer id,
-            @JsonProperty("threadId") Integer threadId,
-            @JsonProperty("nickname") String nickname,
+            @JsonProperty("thread_id") Integer threadId,
+            @JsonProperty("nickname") String author,
             @JsonProperty("voice") Integer voice) {
         this.id = id;
         this.threadId = threadId;
-        this.nickname = nickname;
+        this.author = author;
         this.voice = voice;
     }
 
-    public Integer getThreadId() {
-        return threadId;
-    }
+    public Integer getId()       { return id;       }
+    public Integer getThreadId() { return threadId; }
+    public Integer getVoice()    { return voice;    }
+    public String getAuthor()    { return author;   }
 
-    public Integer getVoice() {
-        return voice;
-    }
+    public void setId(Integer id)             { this.id = id;             }
+    public void setThreadId(Integer threadId) { this.threadId = threadId; }
+    public void setAuthor(String author)      { this.author = author;     }
+    public void setVoice(Integer voice)       { this.voice = voice;       }
 
-    public String getNickname() {
-        return nickname;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public void setThreadId(Integer threadId) {
-        this.threadId = threadId;
-    }
-
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-
-    public void setVoice(Integer voice) {
-        this.voice = voice;
-    }
+    public String getJSONString() { return this.getJSON().toString(); }
 
     public JSONObject getJSON() {
         final JSONObject jsonObject = new JSONObject();
 
         jsonObject.put("threadId", threadId);
-        jsonObject.put("nickname", nickname);
+        jsonObject.put("author", author);
         jsonObject.put("voice", voice);
 
         return jsonObject;
-    }
-
-    public String getJSONString() {
-        return this.getJSON().toString();
     }
 }

@@ -25,7 +25,6 @@ public class PostDAO {
         }
     }
 
-    // TODO: Fix query
     public PostEntity getPostMinId() {
         try {
             return jdbcTemplate.queryForObject("SELECT * FROM post WHERE id IN (SELECT MIN(id) FROM post)",
@@ -43,17 +42,9 @@ public class PostDAO {
         } catch (Exception ignored) {}
     }
 
-    public Integer getMaxId() {
-        try {
-            return jdbcTemplate.queryForObject("SELECT MAX(id) FROM post", Integer.class);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     public void butchInsertPost(List<Object[]> list) {
-        jdbcTemplate.batchUpdate("INSERT INTO post (parent,author,message,isEdited,forum,thread,path,created) " +
-                "VALUES (?,?,?,?,?,?,?,?::timestamptz)", list);
+        jdbcTemplate.batchUpdate("INSERT INTO post (id, parent, author, message, isEdited, forum, thread, path, created) " +
+                "VALUES (?,?,?,?,?,?,?,?,?::timestamptz)", list);
     }
 
     public Boolean parentCheck(Integer parent, Integer threadId) {
@@ -69,14 +60,13 @@ public class PostDAO {
         return true;
     }
 
-    public Integer getCountPostsZeroParent(Integer threadId) {
-        return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM post WHERE parent = 0 AND thread = ?",
-                new Object[]{threadId}, Integer.class);
-    }
-
     public String getPath(Integer postId) {
         return jdbcTemplate.queryForObject("SELECT path FROM post WHERE id = ?;",
                 new Object[]{postId}, String.class);
+    }
+
+    public List<Integer> getIdList(Integer size) {
+        return jdbcTemplate.queryForList("SELECT nextval('post_id_seq') from generate_series(1, ?);", new Object[]{size}, Integer.class);
     }
 
     public List<PostEntity> executeQuery(String query) {

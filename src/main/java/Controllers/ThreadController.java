@@ -40,9 +40,12 @@ public class ThreadController {
     @RequestMapping(path = "/{slug_or_id}/posts", method = RequestMethod.GET)
     public ResponseEntity<String> getThreadPosts(@PathVariable(name = "slug_or_id") String slug_or_id,
                                                  @RequestParam(value = "limit", required = false) Integer limit,
-                                                 @RequestParam(value = "sort", required = false) String sort,
-                                                 @RequestParam(value = "desc", required = false) boolean desc,
+                                                 @RequestParam(value = "sort", required = false, defaultValue = "flat") String sort,
+                                                 @RequestParam(value = "desc", required = false) Boolean desc,
                                                  @RequestParam(value = "marker", required = false, defaultValue = "0") Integer marker) {
+        if(sort == null) sort = "flat";
+        if(desc == null) desc = false;
+        if(limit == null) limit = 0;
         return (threadModel.getThreadPosts(slug_or_id, limit, sort, desc, marker));
     }
 
