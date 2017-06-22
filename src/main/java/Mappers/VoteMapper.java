@@ -12,9 +12,9 @@ public class VoteMapper implements RowMapper<VoteEntity> {
     public VoteEntity mapRow(ResultSet resultSet, int i) throws SQLException {
         final VoteEntity voteEntity = new VoteEntity();
 
+        voteEntity.setId((resultSet.getInt("id")));
         voteEntity.setThreadId(resultSet.getInt("thread_id"));
-        voteEntity.setId(resultSet.getInt("id"));
-        voteEntity.setNickname(resultSet.getString("nickname"));
+        voteEntity.setAuthor(resultSet.getString("author"));
         voteEntity.setVoice(resultSet.getInt("voice"));
 
         return voteEntity;

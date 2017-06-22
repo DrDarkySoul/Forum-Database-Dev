@@ -16,10 +16,9 @@ public class UserModel {
     }
 
     public ResponseEntity<String> createUser(UserEntity userEntity) {
-
         String conflictResult = userDAO.getConflictUsers(userEntity);
         if(conflictResult != null) return new ResponseEntity<>(conflictResult, HttpStatus.CONFLICT);
-        if(userDAO.insertUser(userEntity) == null) return new ResponseEntity<>("{}", HttpStatus.CONFLICT);
+        if(userDAO.insertUser(userEntity) == null) return new ResponseEntity<>(userEntity.getJSONString(), HttpStatus.CONFLICT);
         return new ResponseEntity<>(userEntity.getJSONString(), HttpStatus.CREATED);
     }
 

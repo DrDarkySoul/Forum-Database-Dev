@@ -52,7 +52,7 @@ public class ThreadDAO {
             preparedStatement.setString(3, threadEntity.getForum());
             preparedStatement.setString(4, threadEntity.getMessage());
             preparedStatement.setString(5, threadEntity.getSlug());
-            preparedStatement.setInt(6, threadEntity.getVotes());
+            preparedStatement.setInt   (6, threadEntity.getVotes());
             preparedStatement.setString(7, threadEntity.getCreated());
             return preparedStatement;
         }, keyHolder);
@@ -113,7 +113,7 @@ public class ThreadDAO {
 
     public Integer getThreadCount(Integer id) {
         try {
-            return jdbcTemplate.queryForObject("SELECT count FROM count_parent_zero WHERE thread_id = ?",
+            return jdbcTemplate.queryForObject("SELECT count FROM thread_parent_zero WHERE thread_id = ?",
                     new Object[]{id}, Integer.class);
         } catch (Exception e) {
             return null;
@@ -121,10 +121,10 @@ public class ThreadDAO {
     }
 
     public void updateThreadCountZeroParent(Integer id, Integer diff) {
-        jdbcTemplate.update("UPDATE count_parent_zero SET count = count + ? WHERE thread_id = ?", diff, id);
+        jdbcTemplate.update("UPDATE thread_parent_zero SET count = count + ? WHERE thread_id = ?", diff, id);
     }
 
     public void addThreadCountZeroParent(Integer id) {
-        jdbcTemplate.update("INSERT INTO count_parent_zero (thread_id, count) VALUES(?, 0)", id);
+        jdbcTemplate.update("INSERT INTO thread_parent_zero (thread_id, count) VALUES(?, 0)", id);
     }
 }

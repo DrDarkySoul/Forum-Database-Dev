@@ -21,7 +21,7 @@ public class UserDAO {
 
     public String insertUser(UserEntity userEntity) {
         try {
-            jdbcTemplate.update("INSERT INTO users (nickname, fullname, about, email) VALUES (?,?,?,?)",
+            jdbcTemplate.update("INSERT INTO client (nickname, fullname, about, email) VALUES (?,?,?,?)",
                     userEntity.getNickname(), userEntity.getFullname(), userEntity.getAbout(), userEntity.getEmail());
             Helper.incUser();
             return userEntity.getJSONString();
@@ -34,7 +34,7 @@ public class UserDAO {
         final List<UserEntity> answer;
         try {
             answer = jdbcTemplate.query(
-                    "SELECT * FROM users WHERE LOWER(email) = LOWER(?) OR LOWER(nickname) = LOWER(?)",
+                    "SELECT * FROM client WHERE LOWER(email) = LOWER(?) OR LOWER(nickname) = LOWER(?)",
                     new Object[]{userEntity.getEmail(), userEntity.getNickname()}, new UserMapper());
 
         } catch (Exception e) {
@@ -48,7 +48,7 @@ public class UserDAO {
 
     public String updateUser(UserEntity userEntity) {
         try {
-            jdbcTemplate.update("UPDATE users SET (fullname, about, email) = (?, ?, ?) WHERE LOWER(nickname) = ?",
+            jdbcTemplate.update("UPDATE client SET (fullname, about, email) = (?, ?, ?) WHERE LOWER(nickname) = ?",
                     userEntity.getFullname(), userEntity.getAbout(), userEntity.getEmail(), userEntity.getNickname().toLowerCase());
             return userEntity.getJSONString();
         } catch (Exception e) {
@@ -58,7 +58,7 @@ public class UserDAO {
 
     public UserEntity getUserFromNickname(String nickname) {
         try {
-            return jdbcTemplate.queryForObject("SELECT * FROM users WHERE LOWER(nickname) = ?",
+            return jdbcTemplate.queryForObject("SELECT * FROM client WHERE LOWER(nickname) = ?",
                     new Object[]{nickname.toLowerCase()}, new UserMapper());
         } catch (Exception e) {
             return null;

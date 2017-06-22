@@ -18,13 +18,13 @@ public class VoteDAO {
 
     public Integer getVote(VoteEntity voteEntity, Integer votes) {
         final List<VoteEntity> voteEntityList = jdbcTemplate.query(
-                "SELECT * FROM vote WHERE (thread_id, LOWER(nickname))=(?,?)",
-                new Object[]{voteEntity.getThreadId(), voteEntity.getNickname().toLowerCase()}, new VoteMapper());
+                "SELECT * FROM vote WHERE (thread_id, LOWER(author))=(?,?)",
+                new Object[]{voteEntity.getThreadId(), voteEntity.getAuthor().toLowerCase()}, new VoteMapper());
         if (voteEntityList.isEmpty()) {
             votes += voteEntity.getVoice();
             jdbcTemplate.update("UPDATE thread SET votes = ? WHERE id = ?", votes, voteEntity.getThreadId());
-            jdbcTemplate.update("INSERT INTO vote (thread_id, nickname, voice) VALUES(?, ?, ?)",
-                    voteEntity.getThreadId(), voteEntity.getNickname(), voteEntity.getVoice());
+            jdbcTemplate.update("INSERT INTO vote (thread_id, author, voice) VALUES(?, ?, ?)",
+                    voteEntity.getThreadId(), voteEntity.getAuthor(), voteEntity.getVoice());
         } else {
             jdbcTemplate.update("UPDATE vote SET voice = ? WHERE id = ? ",
                     voteEntity.getVoice(), voteEntityList.get(0).getId());

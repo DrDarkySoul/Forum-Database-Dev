@@ -1,49 +1,26 @@
-DROP SEQUENCE forum_id_seq;
 DROP SEQUENCE post_id_seq;
+DROP SEQUENCE forum_id_seq;
 DROP SEQUENCE thread_id_seq;
-DROP SEQUENCE users_id_seq;
 
-DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS client;
 DROP TABLE IF EXISTS forum;
 DROP TABLE IF EXISTS post;
 DROP TABLE IF EXISTS thread;
 DROP TABLE IF EXISTS vote;
-
-CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE SEQUENCE forum_id_seq;
 CREATE SEQUENCE post_id_seq;
 CREATE SEQUENCE thread_id_seq;
 CREATE SEQUENCE users_id_seq;
 
-create table thread
-(
-  id serial not null
-    constraint thread_pkey
-    primary key,
-  title text not null,
-  forum text not null,
-  message text,
-  votes integer,
-  slug text,
-  created timestamp with time zone,
-  author text
-)
-;
+CREATE EXTENSION IF NOT EXISTS citext;
 
-create index index_thread__slug
-  on thread (lower(slug))
-;
-
-create table users
+create table client
 (
-  id serial not null
+  nickname citext not null
     constraint users_pkey
     primary key,
-  nickname citext not null
-    constraint users_nickname_key
-    unique,
-  fullname varchar(40) not null,
+  fullname varchar(128) not null,
   about text,
   email citext not null
     constraint users_email_key
@@ -51,29 +28,39 @@ create table users
 )
 ;
 
-create index index_user__email
-  on users (lower(email::text))
-;
-
-create index index_user__nickname
-  on users (lower(nickname::text))
-;
-
 create table forum
 (
-  id serial not null
-    constraint forum_pkey
+  slug citext not null
+    constraint forums_pkey
     primary key,
-  title text not null,
-  "user" text not null,
-  slug text,
+  title varchar(128) not null,
+  user citext not null
+    constraint forums_author_fkey
+    references client,
   posts integer default 0 not null,
   threads integer default 0 not null
 )
 ;
 
-create index index_forum__slug
-  on forum (slug)
+create table thread
+(
+  id serial not null
+    constraint threads_pkey
+    primary key,
+  title varchar(128) not null,
+  user citext not null
+    constraint threads_author_fkey
+    references client,
+  forum citext not null
+    constraint threads_forum_fkey
+    references forum,
+  message text not null,
+  votes integer default 0 not null,
+  slug citext
+    constraint threads_slug_key
+    unique,
+  created timestamp with time zone default now() not null
+)
 ;
 
 create table post
@@ -81,62 +68,52 @@ create table post
   id serial not null
     constraint post_pkey
     primary key,
-  parent integer default 0,
-  author varchar(255),
-  message text,
-  isedited boolean,
-  forum varchar(255),
-  created timestamp with time zone default now(),
-  thread integer,
+  parent integer default 0 not null,
+  user citext not null
+    constraint post_author_fkey
+    references client,
+  message text not null,
+  isedited boolean default false not null,
+  forum citext not null
+    constraint post_forum_fkey
+    references forum,
+  thread_id integer not null
+    constraint post_thread_id_fkey
+    references thread,
+  created timestamp with time zone default now() not null,
   path varchar(255)
 )
 ;
 
-create index index_post__parent_thread
-  on post (parent, thread)
-;
-
-create index index_post__thread
-  on post (thread)
-;
-
-create index index_post__created
-  on post (created)
-;
-
-create table vote
+create table votes
 (
-  thread_id integer,
-  nickname varchar(255),
-  voice integer,
-  id serial not null
-    constraint vote_pkey
-    primary key
+  user citext not null
+    constraint votes_author_fkey
+    references client
+    on delete cascade,
+  thread_id integer not null
+    constraint votes_thread_id_fkey
+    references thread
+    on delete cascade,
+  voice integer not null,
+  constraint votes_author_thread_id_key
+  unique (user, thread_id)
 )
 ;
 
-create index index_vote__id_nickname
-  on vote (id, lower(nickname::text))
-;
-
-create table link_user_forum
+create table forum_user
 (
-  id serial not null
-    constraint link_user_forum_pkey
-    primary key,
-  userid integer,
-  forum_slug citext,
-  constraint link_user_forum_userid_forum_slug_key
-  unique (userid, forum_slug)
+  user citext not null,
+  forum citext not null
 )
 ;
 
-create table count_parent_zero
+create table thread_parent_zero
 (
   thread_id integer
-    constraint count_parent_zero_thread_id_fkey
+    constraint thread_parent_zero_thread_id_fkey
     references thread,
-  count integer default 0 not null
+  count integer default 0
 )
 ;
 

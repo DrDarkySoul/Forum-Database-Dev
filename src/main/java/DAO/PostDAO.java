@@ -53,8 +53,8 @@ public class PostDAO {
     }
 
     public void butchInsertPost(List<Object[]> list) {
-        jdbcTemplate.batchUpdate("INSERT INTO post (parent,author,message,isEdited,forum,thread,path,created) " +
-                "VALUES (?,?,?,?,?,?,?,?::timestamptz)", list);
+        jdbcTemplate.batchUpdate("INSERT INTO post (id, parent, author, message, isEdited, forum, thread, path, created) " +
+                "VALUES (?,?,?,?,?,?,?,?,?::timestamptz)", list);
     }
 
     public Boolean parentCheck(Integer parent, Integer threadId) {
@@ -80,8 +80,8 @@ public class PostDAO {
                 new Object[]{postId}, String.class);
     }
 
-    public List<Integer> getIdList(Timestamp time) {
-        return jdbcTemplate.queryForList("SELECT id FROM post WHERE created = ? ORDER BY id ", new Object[]{time}, Integer.class);
+    public List<Integer> getIdList(Integer size) {
+        return jdbcTemplate.queryForList("SELECT nextval('post_id_seq') from generate_series(1, ?);", new Object[]{size}, Integer.class);
     }
 
     public List<PostEntity> executeQuery(String query) {
