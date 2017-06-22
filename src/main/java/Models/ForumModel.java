@@ -84,29 +84,6 @@ public class ForumModel {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-//    // TODO: Add new table, fix slow query
-//    public ResponseEntity<String> getForumUsers(String forumSlug, Integer limit, String since, Boolean desc) {
-//        // Forum check
-//        final ForumEntity forum = forumDAO.getForumFromSlug(forumSlug);
-//        if(forum == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
-//        final StringBuilder query = new StringBuilder(
-//                "SELECT *, OCTET_LENGTH(LOWER(nickname)) FROM users WHERE nickname IN")
-//                .append("(SELECT users.nickname FROM users FULL OUTER JOIN post ")
-//                .append("ON LOWER(users.nickname) = LOWER(post.author) FULL OUTER JOIN thread ")
-//                .append("ON LOWER(users.nickname) = LOWER(thread.author) WHERE LOWER(post.forum) = LOWER(?) ")
-//                .append("OR LOWER(thread.forum) = LOWER(?) GROUP BY users.nickname)");
-//
-//        if (since != null)
-//            if (desc) query.append(" AND nickname<'").append(since).append("'");
-//            else query.append(" AND nickname>'").append(since).append("'");
-//
-//        query.append("  ORDER BY nickname");
-//        if (desc) query.append(" DESC");
-//        if (limit != null) query.append(" LIMIT ").append(limit);
-//        String result = userDAO.getUserList(query.toString(), forumSlug);
-//        return new ResponseEntity<>(result, HttpStatus.OK);
-//    }
-
     @Transactional
     public ResponseEntity<String> getForumUsers(String forumSlug, Integer limit, String since, Boolean desc) {
         // Forum check

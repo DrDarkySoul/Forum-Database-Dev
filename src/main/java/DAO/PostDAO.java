@@ -4,7 +4,6 @@ import Entities.PostEntity;
 import Mappers.PostMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -26,7 +25,6 @@ public class PostDAO {
         }
     }
 
-    // TODO: Fix query
     public PostEntity getPostMinId() {
         try {
             return jdbcTemplate.queryForObject("SELECT * FROM post WHERE id IN (SELECT MIN(id) FROM post)",
@@ -42,14 +40,6 @@ public class PostDAO {
             jdbcTemplate.update("UPDATE post SET message = ?, isedited = true WHERE id = ?",
                     postEntity.getMessage(), postEntity.getId());
         } catch (Exception ignored) {}
-    }
-
-    public Integer getMaxId() {
-        try {
-            return jdbcTemplate.queryForObject("SELECT MAX(id) FROM post", Integer.class);
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     public void butchInsertPost(List<Object[]> list) {
@@ -68,11 +58,6 @@ public class PostDAO {
             return false;
         }
         return true;
-    }
-
-    public Integer getCountPostsZeroParent(Integer threadId) {
-        return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM post WHERE parent = 0 AND thread = ?",
-                new Object[]{threadId}, Integer.class);
     }
 
     public String getPath(Integer postId) {
