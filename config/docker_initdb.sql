@@ -34,7 +34,7 @@ create table forum
     constraint forums_pkey
     primary key,
   title varchar(128) not null,
-  user citext not null
+  author citext not null
     constraint forums_author_fkey
     references client,
   posts integer default 0 not null,
@@ -48,7 +48,7 @@ create table thread
     constraint threads_pkey
     primary key,
   title varchar(128) not null,
-  user citext not null
+  author citext not null
     constraint threads_author_fkey
     references client,
   forum citext not null
@@ -69,7 +69,7 @@ create table post
     constraint post_pkey
     primary key,
   parent integer default 0 not null,
-  user citext not null
+  author citext not null
     constraint post_author_fkey
     references client,
   message text not null,
@@ -85,9 +85,12 @@ create table post
 )
 ;
 
-create table votes
+create table vote
 (
-  user citext not null
+  id serial not null
+    constraint vote_id_pk
+    primary key,
+  author citext not null
     constraint votes_author_fkey
     references client
     on delete cascade,
@@ -97,13 +100,13 @@ create table votes
     on delete cascade,
   voice integer not null,
   constraint votes_author_thread_id_key
-  unique (user, thread_id)
+  unique (author, thread_id)
 )
 ;
 
 create table forum_user
 (
-  user citext not null,
+  author citext not null,
   forum citext not null
 )
 ;

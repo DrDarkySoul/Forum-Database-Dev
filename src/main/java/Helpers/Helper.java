@@ -1,5 +1,7 @@
 package Helpers;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Created by Rishat_Valitov on 16.06.17.
  */
@@ -9,42 +11,42 @@ public class Helper {
     private String slug = "";
     private String flag = "";
 
-    public static Integer getForum() {
+    public static AtomicInteger getForum() {
         return forum;
     }
 
-    public static void setForum(Integer forum) {
+    public static void setForum(AtomicInteger forum) {
         Helper.forum = forum;
     }
 
-    public static Integer getPost() {
+    public static AtomicInteger getPost() {
         return post;
     }
 
-    public static void setPost(Integer post) {
+    public static void setPost(AtomicInteger post) {
         Helper.post = post;
     }
 
-    public static Integer getThread() {
+    public static AtomicInteger getThread() {
         return thread;
     }
 
-    public static void setThread(Integer thread) {
+    public static void setThread(AtomicInteger thread) {
         Helper.thread = thread;
     }
 
-    public static Integer getUser() {
+    public static AtomicInteger getUser() {
         return user;
     }
 
-    public static void setUser(Integer user) {
+    public static void setUser(AtomicInteger user) {
         Helper.user = user;
     }
 
-    static private Integer forum = 0;
-    static private Integer post = 0;
-    static private Integer thread = 0;
-    static private Integer user = 0;
+    static private AtomicInteger forum = new AtomicInteger(0);
+    static private AtomicInteger post = new AtomicInteger(0);
+    static private AtomicInteger thread = new AtomicInteger(0);
+    static private AtomicInteger user = new AtomicInteger(0);
 
     public Helper(String rawIdentifier) {
         try {
@@ -95,25 +97,25 @@ public class Helper {
     }
 
     public static void incForum() {
-        forum += 1;
+        forum.incrementAndGet();
     }
 
     public static void incPost(Integer num) {
-        post += num;
+        post.addAndGet(num);
     }
 
     public static void incUser() {
-        user += 1;
+        user.incrementAndGet();
     }
 
     public static void incThread() {
-        thread += 1;
+        thread.incrementAndGet();
     }
 
     public static void toZero() {
-        forum = 0;
-        user = 0;
-        post = 0;
-        thread = 0;
+        forum.set(0);
+        user.set(0);
+        post.set(0);
+        thread.set(0);
     }
 }

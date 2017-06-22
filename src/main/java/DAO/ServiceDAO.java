@@ -1,6 +1,7 @@
 package DAO;
 
 import Entities.ServiceEntity;
+import Helpers.Helper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ public class ServiceDAO {
         final Integer thread = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM post", new Object[]{}, Integer.class);// - threadLikePost;
         final Integer post = jdbcTemplate.queryForObject  ("SELECT COUNT(*) FROM thread", new Object[]{}, Integer.class);// + threadLikePost;
         return new ServiceEntity(forum, post, thread, user);
+//        return new ServiceEntity(Helper.getForum().get(), Helper.getPost().get(), Helper.getThread().get(), Helper.getUser().get());
     }
 
     @Transactional
