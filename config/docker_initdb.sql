@@ -1,17 +1,18 @@
 DROP SEQUENCE post_id_seq;
-DROP SEQUENCE forum_id_seq;
 DROP SEQUENCE thread_id_seq;
+DROP SEQUENCE vote_id_seq;
 
 DROP TABLE IF EXISTS client;
 DROP TABLE IF EXISTS forum;
 DROP TABLE IF EXISTS post;
 DROP TABLE IF EXISTS thread;
 DROP TABLE IF EXISTS vote;
+DROP TABLE IF EXISTS forum_user;
+DROP TABLE IF EXISTS thread_parent_zero;
 
-CREATE SEQUENCE forum_id_seq;
 CREATE SEQUENCE post_id_seq;
 CREATE SEQUENCE thread_id_seq;
-CREATE SEQUENCE users_id_seq;
+CREATE SEQUENCE vote_id_seq;
 
 CREATE EXTENSION IF NOT EXISTS citext;
 
@@ -87,9 +88,6 @@ create table post
 
 create table vote
 (
-  id serial not null
-    constraint vote_id_pk
-    primary key,
   author citext not null
     constraint votes_author_fkey
     references client
@@ -99,6 +97,9 @@ create table vote
     references thread
     on delete cascade,
   voice integer not null,
+  id serial not null
+    constraint vote_id_pk
+    primary key,
   constraint votes_author_thread_id_key
   unique (author, thread_id)
 )
@@ -120,21 +121,22 @@ create table thread_parent_zero
 )
 ;
 
-CREATE INDEX index_client__nickname ON client (lower(nickname COLLATE "ucs_basic"));
-CREATE INDEX index_vote ON vote (author, thread_id);
-CREATE INDEX index_forum__slug ON forum (lower(slug));
-CREATE INDEX index_forum__author ON forum (author);
-CREATE INDEX index_thread__slug ON thread (slug);
-CREATE INDEX index_thread__forum ON thread (lower(forum));
+CREATE INDEX index_vote_pair ON vote (author, thread_id);
+CREATE INDEX index_vote_id ON vote (id);
+
+CREATE INDEX index_client_nickname ON client (lower(nickname COLLATE "ucs_basic"));
+CREATE INDEX index_client_email ON client (lower(email COLLATE "ucs_basic"));
+
+CREATE INDEX index_forum__slug ON forum (lower(slug COLLATE "ucs_basic"));
+
+CREATE INDEX index_thread__slug ON thread (lower(slug COLLATE "ucs_basic"));
+CREATE INDEX index_thread__id ON thread (id);
+
 CREATE INDEX forum_user__author ON forum_user (author);
 CREATE INDEX forum_user__forum ON forum_user (forum);
-CREATE INDEX forum_user ON forum_user (lower(forum), author);
--- CREATE INDEX index_post__thread ON post (thread ASC);
--- CREATE INDEX index_post__parent ON post (parent ASC);
--- CREATE INDEX index_post__path ON post (path ASC);
-CREATE INDEX ON post (author,forum);
-CREATE INDEX ON post (id, parent, thread);
-CREATE INDEX ON post (thread, id);
-CREATE INDEX ON post (path, id);
-CREATE INDEX ON post (thread, path);
-CREATE INDEX ON post (thread, created, id);
+
+CREATE INDEX thread_parent_zero_id ON thread_parent_zero (thread_id);
+
+CREATE INDEX index_post_pair ON post (thread, id);
+CREATE INDEX index_post_id ON post (id);
+CREATE INDEX index_post_created ON post (created);

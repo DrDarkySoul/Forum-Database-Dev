@@ -40,12 +40,10 @@ public class ThreadModel {
     public ResponseEntity<String> createPosts(ArrayList<PostEntity> postEntityArrayList, ThreadEntity threadEntity) {
         final Timestamp nowTimestamp = new Timestamp(System.currentTimeMillis());
         final String timeStringNow = Helper.dateFixThree(nowTimestamp.toString());
-        List<Integer> idList = postDAO.getIdList(postEntityArrayList.size());
+//        List<Integer> idList = postDAO.getIdList(postEntityArrayList.size());
         List<String> clientList = new ArrayList<>();
-        Integer idCounter = 0;
-        Integer maxId = idList.get(0) - 1;
-        if(maxId < 0) maxId = 0;
-        Integer currId = maxId;
+        Integer currId = postDAO.getMaxId();//idList.get(0) - 1;
+        if(currId == null) currId = 0;
         Integer countZeroParentPosts = 0;
         List<Object[]> postsList = new ArrayList<>();
         for (PostEntity post : postEntityArrayList) {
@@ -57,8 +55,6 @@ public class ThreadModel {
 
             if(post.getEdited() == null) post.setEdited(false);
             if(post.getParent() == null) post.setParent(0);
-            post.setId(idList.get(idCounter));
-            idCounter++;
             post.setForum(threadEntity.getForum());
             post.setThread(threadEntity.getId());
             post.setCreated(timeStringNow);
@@ -84,7 +80,6 @@ public class ThreadModel {
                     !postDAO.parentCheck(post.getParent(), threadEntity.getId()))
                 return new ResponseEntity<>("", HttpStatus.CONFLICT);
             postsList.add(new Object[]{
-                    post.getId(),
                     post.getParent(),
                     post.getAuthor(),
                     post.getMessage(),
@@ -97,10 +92,15 @@ public class ThreadModel {
         postDAO.butchInsertPost(postsList);
         threadDAO.updateThreadCountZeroParent(threadEntity.getId(), countZeroParentPosts);
         forumDAO.addInUserForumMany(threadEntity.getForum(), clientList, 40);
+        List<Integer> listId = postDAO.getIdListFormCreated(nowTimestamp);
+        IntStream.range(0, postEntityArrayList.size()).boxed().forEach(index ->
+                postEntityArrayList.get(index).setId(listId.get(index)));
 //        forumDAO.updatePostCount(threadEntity.getForum(), postEntityArrayList.size());
         Helper.incPost(postEntityArrayList.size());
         JSONArray result = new JSONArray();
-        for (PostEntity post : postEntityArrayList) { result.put(post.getJSON()); }
+        for (PostEntity post : postEntityArrayList)
+            result.put(post.getJSON());
+
         return new ResponseEntity<>(result.toString(), HttpStatus.CREATED);
     }
 

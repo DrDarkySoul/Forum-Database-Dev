@@ -32,13 +32,7 @@ public class ServiceDAO {
 
     @Transactional
     public ServiceEntity clear() {
-        jdbcTemplate.update("DELETE FROM thread_parent_zero;" +
-                "DELETE FROM forum_user;"+
-                "DELETE FROM post; "     +
-                "DELETE FROM thread; "   +
-                "DELETE FROM forum; "    +
-                "DELETE FROM client; "   +
-                "DELETE FROM vote;");
+        jdbcTemplate.execute("TRUNCATE TABLE client, forum, thread, vote, post, forum_user, thread_parent_zero CASCADE;");
         return new ServiceEntity();
     }
 }

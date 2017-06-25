@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -39,6 +40,16 @@ public class PostDAO {
         }
     }
 
+    public Integer getMaxId() {
+        try {
+            return jdbcTemplate.queryForObject("SELECT MAX(id) FROM post",
+                    new Object[]{}, Integer.class);
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public void updatePost(PostEntity postEntity) {
         try {
             jdbcTemplate.update("UPDATE post SET message = ?, isedited = true WHERE id = ?",
@@ -47,8 +58,8 @@ public class PostDAO {
     }
 
     public void butchInsertPost(List<Object[]> list) {
-        jdbcTemplate.batchUpdate("INSERT INTO post (id, parent, author, message, isEdited, forum, thread, path, created) " +
-                "VALUES (?,?,?,?,?,?,?,?,?::timestamptz)", list);
+        jdbcTemplate.batchUpdate("INSERT INTO post (parent, author, message, isEdited, forum, thread, path, created) " +
+                "VALUES (?,?,?,?,?,?,?,?::timestamptz)", list);
     }
 
     public Boolean parentCheck(Integer parent, Integer threadId) {
@@ -71,6 +82,10 @@ public class PostDAO {
 
     public List<Integer> getIdList(Integer size) {
         return jdbcTemplate.queryForList("SELECT nextval('post_id_seq') from generate_series(1, ?);", new Object[]{size}, Integer.class);
+    }
+
+    public List<Integer> getIdListFormCreated(Timestamp created) {
+        return jdbcTemplate.queryForList("SELECT id FROM post WHERE created = ? ORDER BY id", new Object[]{created}, Integer.class);
     }
 
     public List<PostEntity> executeQuery(String query) {
