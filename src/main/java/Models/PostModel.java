@@ -10,22 +10,29 @@ import Entities.ThreadEntity;
 import Entities.UserEntity;
 import Helpers.Helper;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
+@Component("PostModel")
 public class PostModel {
 
+    @Autowired
     private PostDAO postDAO;
+    @Autowired
     private UserDAO userDAO;
+    @Autowired
     private ForumDAO forumDAO;
+    @Autowired
     private ThreadDAO threadDAO;
 
     public PostModel(JdbcTemplate jdbcTemplate) {
-        this.postDAO   = new PostDAO(jdbcTemplate);
-        this.forumDAO  = new ForumDAO(jdbcTemplate);
-        this.userDAO   = new UserDAO(jdbcTemplate);
-        this.threadDAO = new ThreadDAO(jdbcTemplate);
+//        this.postDAO   = new PostDAO(jdbcTemplate);
+//        this.forumDAO  = new ForumDAO(jdbcTemplate);
+//        this.userDAO   = new UserDAO(jdbcTemplate);
+//        this.threadDAO = new ThreadDAO(jdbcTemplate);
     }
 
     public ResponseEntity<String> getDetail(Integer id, String related) {

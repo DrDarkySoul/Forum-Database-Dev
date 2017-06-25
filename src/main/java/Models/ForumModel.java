@@ -7,23 +7,25 @@ import Entities.ForumEntity;
 import Entities.ThreadEntity;
 import Entities.UserEntity;
 import Helpers.Helper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 
+@Component("ForumModel")
 public class ForumModel {
-    private final ForumDAO forumDAO;
-    private final UserDAO userDAO;
-    private final ThreadDAO threadDAO;
 
-    public ForumModel(JdbcTemplate jdbcTemplate) {
-        this.userDAO = new UserDAO(jdbcTemplate);
-        this.forumDAO = new ForumDAO(jdbcTemplate);
-        this.threadDAO = new ThreadDAO(jdbcTemplate);
-    }
+    @Autowired
+    private ForumDAO forumDAO;
+    @Autowired
+    private UserDAO userDAO;
+    @Autowired
+    private ThreadDAO threadDAO;
 
     public ResponseEntity<String> createForum(ForumEntity forumEntity) {
         // Check slug

@@ -2,15 +2,19 @@ package DAO;
 
 import Entities.PostEntity;
 import Mappers.PostMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * Created by Rishat_Valitov on 16.06.17.
  */
+@Component("PostDAO")
 public class PostDAO {
-    private final JdbcTemplate jdbcTemplate;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     public PostDAO(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;

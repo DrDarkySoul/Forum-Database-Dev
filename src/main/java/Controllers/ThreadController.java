@@ -1,9 +1,13 @@
 package Controllers;
 
+import DAO.ForumDAO;
+import DAO.ThreadDAO;
 import Models.ThreadModel;
 import Entities.PostEntity;
 import Entities.ThreadEntity;
 import Entities.VoteEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -14,16 +18,22 @@ import java.util.ArrayList;
 @RequestMapping("api/thread/")
 public class ThreadController {
 
-    private final ThreadModel threadModel;
-
-    public ThreadController(JdbcTemplate jdbcTemplate) {
-        this.threadModel = new ThreadModel(jdbcTemplate);
-    }
+    @Autowired
+    private ThreadModel threadModel;
+    @Autowired
+    private ForumDAO forumDAO;
+    @Autowired
+    private ThreadDAO threadDAO;
 
     @RequestMapping(path = "/{slug_or_id}/create", method = RequestMethod.POST)
     public ResponseEntity<String> createPost(@PathVariable(name = "slug_or_id") String slug_or_id,
                                              @RequestBody ArrayList<PostEntity> body) {
-        return (threadModel.createPosts(body, slug_or_id));
+        final ThreadEntity threadEntity = threadDAO.getThread(slug_or_id);
+        if(threadEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
+        ResponseEntity<String> responseEntity = threadModel.createPosts(body, threadEntity);
+        if(responseEntity.getStatusCode().equals(HttpStatus.CREATED))
+            forumDAO.updatePostCount(threadEntity.getForum(), body.size());
+        return (responseEntity);
     }
 
     @RequestMapping(path = "/{slug_or_id}/details", method = RequestMethod.GET)

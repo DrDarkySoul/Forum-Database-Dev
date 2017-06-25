@@ -9,9 +9,11 @@ import Helpers.Helper;
 import Mappers.PostMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,27 +23,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
+@Component("ThreadModel")
 public class ThreadModel {
-    private final ThreadDAO threadDAO;
-    private final UserDAO userDAO;
-    private final PostDAO postDAO;
-    private final VoteDAO voteDAO;
-    private final ForumDAO forumDAO;
-
-    public ThreadModel(JdbcTemplate jdbcTemplate) {
-        this.threadDAO = new ThreadDAO(jdbcTemplate);
-        this.userDAO = new UserDAO(jdbcTemplate);
-        this.postDAO = new PostDAO(jdbcTemplate);
-        this.voteDAO = new VoteDAO(jdbcTemplate);
-        this.forumDAO = new ForumDAO(jdbcTemplate);
-    }
+    @Autowired
+    private ThreadDAO threadDAO;
+    @Autowired
+    private UserDAO userDAO;
+    @Autowired
+    private PostDAO postDAO;
+    @Autowired
+    private VoteDAO voteDAO;
+    @Autowired
+    private ForumDAO forumDAO;
 
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    public ResponseEntity<String> createPosts(ArrayList<PostEntity> postEntityArrayList, String slug_or_id) {
-        // Thread check
-        final ThreadEntity threadEntity = threadDAO.getThread(slug_or_id);
-        if(threadEntity == null) return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
-
+    public ResponseEntity<String> createPosts(ArrayList<PostEntity> postEntityArrayList, ThreadEntity threadEntity) {
         final Timestamp nowTimestamp = new Timestamp(System.currentTimeMillis());
         final String timeStringNow = Helper.dateFixThree(nowTimestamp.toString());
         List<Integer> idList = postDAO.getIdList(postEntityArrayList.size());
@@ -100,9 +96,8 @@ public class ThreadModel {
         }
         postDAO.butchInsertPost(postsList);
         threadDAO.updateThreadCountZeroParent(threadEntity.getId(), countZeroParentPosts);
-        forumDAO.updatePostCount(threadEntity.getForum(), postEntityArrayList.size());
         forumDAO.addInUserForumMany(threadEntity.getForum(), clientList, 40);
-
+//        forumDAO.updatePostCount(threadEntity.getForum(), postEntityArrayList.size());
         Helper.incPost(postEntityArrayList.size());
         JSONArray result = new JSONArray();
         for (PostEntity post : postEntityArrayList) { result.put(post.getJSON()); }

@@ -3,16 +3,20 @@ package Models;
 import DAO.UserDAO;
 import Entities.UserEntity;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
+@Component("UserModel")
 public class UserModel {
 
-    private final UserDAO userDAO;
+    @Autowired
+    private UserDAO userDAO;
 
     public UserModel(JdbcTemplate jdbcTemplate) {
-        this.userDAO = new UserDAO(jdbcTemplate);
+//        this.userDAO = new UserDAO(jdbcTemplate);
     }
 
     public ResponseEntity<String> createUser(UserEntity userEntity) {

@@ -4,11 +4,13 @@ import Entities.ThreadEntity;
 import Helpers.Helper;
 import Mappers.ThreadMapper;
 import org.json.JSONArray;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.stereotype.Component;
 
 import java.sql.PreparedStatement;
 import java.util.List;
@@ -16,8 +18,11 @@ import java.util.List;
 /**
  * Created by Rishat_Valitov on 16.06.17.
  */
+@Component("ThreadDAO")
 public class ThreadDAO {
-    private final JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     public ThreadDAO(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;

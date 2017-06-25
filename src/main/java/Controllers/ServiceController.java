@@ -1,6 +1,7 @@
 package Controllers;
 
 import Models.ServiceModel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -14,10 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("api/service/")
 public class ServiceController {
-    private final ServiceModel serviceModel;
+    @Autowired
+    private ServiceModel serviceModel;
 
     public ServiceController(JdbcTemplate jdbcTemplate) {
-        this.serviceModel = new ServiceModel(jdbcTemplate);
+//        this.serviceModel = new ServiceModel(jdbcTemplate);
     }
 
     @RequestMapping(path = "/clear", method = RequestMethod.POST)

@@ -2,15 +2,18 @@ package DAO;
 
 import Entities.ServiceEntity;
 import Helpers.Helper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Created by Rishat_Valitov on 16.06.17.
  */
-
+@Component("ServiceDAO")
 public class ServiceDAO {
-    private final JdbcTemplate jdbcTemplate;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     public ServiceDAO(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;

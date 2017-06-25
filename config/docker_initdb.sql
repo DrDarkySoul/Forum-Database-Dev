@@ -77,7 +77,7 @@ create table post
   forum citext not null
     constraint post_forum_fkey
     references forum,
-  thread_id integer not null
+  thread integer not null
     constraint post_thread_id_fkey
     references thread,
   created timestamp with time zone default now() not null,
@@ -120,5 +120,21 @@ create table thread_parent_zero
 )
 ;
 
-
-
+CREATE INDEX index_client__nickname ON client (lower(nickname COLLATE "ucs_basic"));
+CREATE INDEX index_vote ON vote (author, thread_id);
+CREATE INDEX index_forum__slug ON forum (lower(slug));
+CREATE INDEX index_forum__author ON forum (author);
+CREATE INDEX index_thread__slug ON thread (slug);
+CREATE INDEX index_thread__forum ON thread (lower(forum));
+CREATE INDEX forum_user__author ON forum_user (author);
+CREATE INDEX forum_user__forum ON forum_user (forum);
+CREATE INDEX forum_user ON forum_user (lower(forum), author);
+-- CREATE INDEX index_post__thread ON post (thread ASC);
+-- CREATE INDEX index_post__parent ON post (parent ASC);
+-- CREATE INDEX index_post__path ON post (path ASC);
+CREATE INDEX ON post (author,forum);
+CREATE INDEX ON post (id, parent, thread);
+CREATE INDEX ON post (thread, id);
+CREATE INDEX ON post (path, id);
+CREATE INDEX ON post (thread, path);
+CREATE INDEX ON post (thread, created, id);

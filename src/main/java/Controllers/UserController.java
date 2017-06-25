@@ -2,6 +2,7 @@ package Controllers;
 
 import Models.UserModel;
 import Entities.UserEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -10,10 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/user/")
 public class UserController {
 
-    private final UserModel userService;
+    @Autowired
+    private UserModel userService;
 
     UserController(JdbcTemplate jdbcTemplate) {
-        this.userService = new UserModel(jdbcTemplate);
+//        this.userService = new UserModel(jdbcTemplate);
     }
 
     @RequestMapping(path = "/{nickname}/create",

@@ -4,6 +4,8 @@ import Helpers.Helper;
 import Models.ForumModel;
 import Entities.ForumEntity;
 import Entities.ThreadEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +16,12 @@ import java.sql.Timestamp;
 @RestController
 @RequestMapping("/api/forum/")
 public class ForumController {
-    @NotNull
-    private final ForumModel forumModel;
+
+    @Autowired
+    private ForumModel forumModel;
 
     public ForumController(JdbcTemplate jdbcTemplate) {
-        this.forumModel = new ForumModel(jdbcTemplate);
+//        this.forumModel = new ForumModel(jdbcTemplate);
     }
 
     @RequestMapping(path = "/create", method = RequestMethod.POST)

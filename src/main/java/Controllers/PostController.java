@@ -2,6 +2,7 @@ package Controllers;
 
 import Models.PostModel;
 import Entities.PostEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -10,10 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/post/")
 public class PostController {
 
-    private final PostModel postModel;
+    @Autowired
+    private PostModel postModel;
 
     public PostController(JdbcTemplate jdbcTemplate) {
-        this.postModel = new PostModel(jdbcTemplate);
+//        this.postModel = new PostModel(jdbcTemplate);
     }
 
     @RequestMapping(path = "/{id}/details", method = RequestMethod.GET)

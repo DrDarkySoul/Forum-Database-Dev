@@ -2,15 +2,19 @@ package DAO;
 
 import Entities.VoteEntity;
 import Mappers.VoteMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * Created by Rishat_Valitov on 16.06.17.
  */
+@Component("VoteDAO")
 public class VoteDAO {
-    private final JdbcTemplate jdbcTemplate;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     public VoteDAO(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
