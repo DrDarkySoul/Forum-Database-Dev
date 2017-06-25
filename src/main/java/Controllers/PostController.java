@@ -14,10 +14,6 @@ public class PostController {
     @Autowired
     private PostModel postModel;
 
-    public PostController(JdbcTemplate jdbcTemplate) {
-//        this.postModel = new PostModel(jdbcTemplate);
-    }
-
     @RequestMapping(path = "/{id}/details", method = RequestMethod.GET)
     public ResponseEntity<String> getPostDetail(@PathVariable(name = "id") Integer id,
                                                 @RequestParam(value = "related",

@@ -1,12 +1,18 @@
 package DAO;
 
 import Entities.PostEntity;
+import Entities.ThreadEntity;
+import Helpers.Helper;
 import Mappers.PostMapper;
+import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import java.sql.Timestamp;
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -90,5 +96,16 @@ public class PostDAO {
 
     public List<PostEntity> executeQuery(String query) {
         return jdbcTemplate.query(query, new PostMapper());
+    }
+
+    public List<Integer> getIds(Integer id) {
+        return jdbcTemplate.queryForList("SELECT id FROM post WHERE id > ? ORDER BY id", new Object[]{id}, Integer.class);
+    }
+
+    public Integer getCountOfMainPosts(Integer threadId) {
+        return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM post WHERE parent=0 AND thread=?",
+                new Object[]{threadId}, Integer.class
+        );
     }
 }
